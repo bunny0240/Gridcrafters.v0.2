@@ -1,0 +1,48 @@
+GRIDCRAFTERS — DASHBOARD VISUAL OVERHAUL ONLY. No logic changes. No backend changes. UI/CSS fixes only.
+
+FIX 1 — STAT CARDS (4 top cards)
+Replace flat dark cards with colored accent cards:
+Total XP card: add background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(139,92,246,0.04)), border-color: rgba(139,92,246,0.35), number color #a78bfa, size 32px DM Mono 700, label TOTAL XP color #8b5cf6 12px Geist 600 uppercase tracking 1px
+Day Streak card: background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04)), border-color: rgba(245,158,11,0.35), number #fbbf24 32px, label color #f59e0b, prepend 🔥 before number
+Levels Done card: background: linear-gradient(135deg, rgba(34,197,94,0.10), rgba(34,197,94,0.04)), border-color: rgba(34,197,94,0.30), number #4ade80 32px, label color #22c55e
+Rank card: background: linear-gradient(135deg, rgba(59,130,246,0.10), rgba(59,130,246,0.04)), border-color: rgba(59,130,246,0.30), number gradient #8b5cf6→#3b82f6 32px, label color #60a5fa
+All cards: padding 20px 22px, border-radius 10px, label font 13px
+
+FIX 2 — MODULE CARDS
+Shortcut Masters card: gradient border linear-gradient(var(--s1),var(--s1)) padding-box, linear-gradient(135deg,#8b5cf6,#3b82f6) border-box, border 1px solid transparent. Card title 18px Geist 700 #f0ede6. Subtitle 13px #8a857a. Level rows: label 14px Geist 500 #c4bfb4, progress fraction 13px DM Mono #a78bfa. Add thin progress bar under each level row: height 3px, bg #2c2c28, fill gradient purple→blue based on completion %. Arrow icon color #8b5cf6.
+Formatting Kings card: same structure but border gradient uses #3b82f6→#06b6d4. Arrow #3b82f6. Level fraction DM Mono #60a5fa. Add "COMING SOON" chip top-right: bg rgba(59,130,246,0.1) border rgba(59,130,246,0.25) color #60a5fa Geist 600 10px uppercase px-2 py-1 radius-4.
+Real Analysts card: keep soon state but give it background: rgba(245,158,11,0.04) border: 1px solid rgba(245,158,11,0.2). Title #c4bfb4 17px. Subtitle #5a5650.
+Global Leaderboard card: background: rgba(139,92,246,0.05) border: 1px solid rgba(139,92,246,0.2). Title gradient text. Subtitle #5a5650.
+
+FIX 3 — SIDEBAR
+Increase all font sizes:
+
+Nav item labels: 15px Geist 400
+Section labels (LEARN, COMMUNITY): 11px Geist 600 uppercase tracking 1.2px color #5a5650
+XP card level name: 15px Geist 700 #f0ede6
+XP card sub text "Rookie · 0% to next level": 12px Geist 400 #8a857a
+XP bar label "500 XP left" + "0%": 11px DM Mono #5a5650
+Streak text "1-day streak active": 13px Geist 600 #fbbf24
+Best streak text: 12px Geist 400 #8a857a
+
+XP card: background: #1a1a17 border: 1px solid rgba(139,92,246,0.2) border-radius: 10px padding: 14px 15px
+
+XP number in top row: gradient text #8b5cf6→#3b82f6 DM Mono 700 14px
+
+FIX 4 — PAGE HEADER
+"Welcome back, Hyatt" — keep 24px Geist 700 but color #f0ede6
+
+Date subtitle — 13px Geist 400 #8a857a
+
+Streak pill in topbar — background: rgba(245,158,11,0.1) border: 1px solid rgba(245,158,11,0.25) color: #fbbf24 13px Geist 600 px-3 py-1.5
+
+FIX 5 — SECTION LABEL "MODULES"
+Color #8a857a → #5a5650, size 12px, tracking 1.5px. Add a 1px solid #2c2c28 divider line after it.
+
+RULES:
+
+CSS/JSX changes only — zero logic/backend changes
+No new components — edit existing Dashboard.tsx and Sidebar.tsx inline styles or Tailwind classes
+Do not touch any hooks, db.ts, supabase.ts, or data files
+Do not change routing or any page except Dashboard and Sidebar
+Build must pass after changes

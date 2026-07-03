@@ -1,0 +1,208 @@
+Apply these fixes to GridCrafters. No new features beyond what's listed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 1 — RANKS NOT UPDATING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: leaderboard rank shown to user is stale, not recalculated
+live as XP changes.
+
+The `rank()` window function in the leaderboard VIEW is correct, but
+it's only recalculated when the view is queried — it must be re-fetched
+after every XP change, not cached.
+
+Fix: in useUserStore (or wherever leaderboard/rank is read), refetch
+the user's rank whenever profile.total_xp changes:
+
+  useEffect(() => {
+    if (!profile?.id) return
+    supabase
+      .from('leaderboard')
+      .select('rank')
+      .eq('id', profile.id)
+      .single()
+      .then(({ data }) => {
+        if (data) dispatch({ type: 'SET_RANK', payload: data.rank })
+      })
+  }, [profile?.total_xp])
+
+Dashboard stat card "Rank" and Profile page rank badge must both
+read from this same store value — never compute rank locally or
+cache it beyond this effect.
+
+Also subscribe to realtime on the profiles table broadly (not just
+filtered to own id) so rank updates when OTHER users gain XP too:
+
+  const channel = supabase
+    .channel('global-xp-changes')
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'profiles' },
+      () => {
+        // any profile's XP changed — refetch own rank
+        supabase.from('leaderboard').select('rank')
+          .eq('id', profile.id).single()
+          .then(({ data }) => data && dispatch({ type:'SET_RANK', payload:data.rank }))
+      })
+    .subscribe()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 2 — LEVEL NOT UPDATING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: profiles.level is set once on signup and never recalculates
+even though total_xp increases.
+
+Root cause: the level CASE logic inside update_total_xp() trigger
+references `total_xp` (old value) instead of the new total — check
+and fix the trigger:
+
+  create or replace function public.update_total_xp()
+  returns trigger language plpgsql security definer as $$
+  declare
+    v_new_total integer;
+  begin
+    v_new_total := (select total_xp from public.profiles where id = new.user_id) + new.amount;
+
+    update public.profiles set
+      total_xp = v_new_total,
+      level = case
+        when v_new_total >= 12000 then 6
+        when v_new_total >= 6000  then 5
+        when v_new_total >= 3000  then 4
+        when v_new_total >= 1500  then 3
+        when v_new_total >= 500   then 2
+        else 1
+      end,
+      updated_at = now()
+    where id = new.user_id;
+
+    return new;
+  end;
+  $$;
+
+Re-run this in Supabase SQL Editor to replace the broken function.
+
+Verify level changes propagate via the same realtime profiles
+subscription used for XP (Fix 1 in the previous prompt) — no
+separate fetch needed since level is a column on the same row.
+
+Add a level-up check client-side: when profile.level increases
+(compare previous value via a ref), trigger LevelUpOverlay.
+
+  const prevLevel = useRef(profile?.level)
+  useEffect(() => {
+    if (profile && prevLevel.current && profile.level > prevLevel.current) {
+      showLevelUpOverlay(profile.level)
+    }
+    prevLevel.current = profile?.level
+  }, [profile?.level])
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 3 — SINGLE BADGE FOR SHORTCUT MASTERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Remove the three separate badges (shortcut_rookie, shortcut_inter,
+shortcut_adv). Replace with one badge awarded only when ALL THREE
+levels (Rookie + Intermediate + Advanced) are complete.
+
+  delete from public.user_badges
+    where badge_id in ('shortcut_rookie','shortcut_inter','shortcut_adv');
+  delete from public.badges
+    where id in ('shortcut_rookie','shortcut_inter','shortcut_adv');
+
+  insert into public.badges (id, name, description, icon, condition)
+  values (
+    'shortcut_master',
+    'Shortcut Master',
+    'Completed Rookie, Intermediate, and Advanced shortcut levels',
+    '⌨️',
+    'shortcuts_all_levels_complete'
+  );
+
+Update the badge-award logic (in checkLevelCompletion or wherever
+level_completion is upserted) — after any level completes, check
+if all 3 shortcut levels are now done for that user:
+
+  async function checkShortcutMasterBadge(userId: string) {
+    const { data } = await supabase
+      .from('level_completion')
+      .select('level_name')
+      .eq('user_id', userId)
+      .eq('module', 'shortcuts')
+
+    const completed = new Set((data ?? []).map(r => r.level_name.toLowerCase()))
+    const allDone = ['rookie','intermediate','advanced']
+      .every(lvl => completed.has(lvl))
+
+    if (!allDone) return
+
+    const { data: existing } = await supabase
+      .from('user_badges')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('badge_id', 'shortcut_master')
+      .maybeSingle()
+
+    if (existing) return // already earned
+
+    await supabase.from('user_badges').insert({
+      user_id: userId, badge_id: 'shortcut_master'
+    })
+
+    showBadgeUnlockToast('⌨️ Shortcut Master')
+  }
+
+Call checkShortcutMasterBadge(userId) at the end of every
+checkLevelCompletion call for the shortcuts module.
+
+Update Profile page and Dashboard badges row — remove references
+to the 3 old badge ids, show only shortcut_master going forward.
+Formatting Kings badges (formatting_king etc.) stay untouched since
+that module is shelved but progress is preserved.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 4 — WIPE ALL USERS FOR CLEAN RETEST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run this in Supabase SQL Editor to delete all test users and
+their data, so you can test the full flow from a clean slate:
+
+  -- Delete in dependency order (children first)
+  delete from public.activity_log;
+  delete from public.xp_transactions;
+  delete from public.shortcut_progress;
+  delete from public.formatting_progress;
+  delete from public.level_completion;
+  delete from public.user_badges;
+  delete from public.last_challenge;
+  delete from public.profiles;
+
+  -- Delete all auth users (this cascades via FK to profiles too,
+  -- but profiles is already cleared above for safety)
+  delete from auth.users;
+
+After running this, confirm everything is empty:
+
+  select count(*) from auth.users;     -- should be 0
+  select count(*) from public.profiles; -- should be 0
+
+You can now sign up fresh and test the complete flow:
+sign up → confirm email → welcome screen → dashboard →
+complete shortcuts → check XP/level/rank/streak/badge all update
+live across sidebar, dashboard, and profile.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Rank is refetched from the leaderboard view on every XP change,
+   own or others' — never computed or cached client-side
+2. Level is recalculated server-side in the XP trigger using the
+   correct new total, not the stale pre-update value
+3. Only one shortcut badge exists: shortcut_master, awarded only
+   when all 3 levels are complete
+4. Badge check runs after every level_completion upsert
+5. Formatting Kings badges and progress tables remain untouched
+6. All user data is wiped via the SQL block above before retesting
+7. Do not delete badges table rows for formatting or streak/speed/etc —
+   only the 3 old per-level shortcut badges are removed

@@ -1,0 +1,530 @@
+You are fixing and deploying GridCrafters. Apply every fix below.
+No regressions. No new features except what is listed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 1 — LIVE XP SYNC ACROSS ALL SURFACES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: XP shown in sidebar, dashboard stats card, and profile
+page go out of sync. One updates, others stay stale.
+
+Solution: Single source of truth via Supabase Realtime.
+
+Create src/store/userStore.ts using React Context + useReducer:
+
+  interface UserStore {
+    profile: Profile | null
+    loading: boolean
+    error: string | null
+  }
+
+  const UserContext = createContext<{
+    state: UserStore
+    dispatch: Dispatch<Action>
+  }>(null!)
+
+  export function UserProvider({ children }) {
+    const [state, dispatch] = useReducer(reducer, initialState)
+    const { user } = useAuth()
+
+    useEffect(() => {
+      if (!user) return
+
+      // Initial fetch
+      fetchProfile(user.id).then(profile =>
+        dispatch({ type: 'SET_PROFILE', payload: profile })
+      )
+
+      // Realtime subscription — fires on every profiles row update
+      const channel = supabase
+        .channel(`profile-${user.id}`)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        }, (payload) => {
+          dispatch({ type: 'SET_PROFILE', payload: payload.new as Profile })
+        })
+        .subscribe()
+
+      return () => { supabase.removeChannel(channel) }
+    }, [user])
+
+    return (
+      <UserContext.Provider value={{ state, dispatch }}>
+        {children}
+      </UserContext.Provider>
+    )
+  }
+
+  export const useUserStore = () => useContext(UserContext)
+
+Wrap App.tsx in <UserProvider> inside <AuthProvider>.
+
+Replace ALL individual profile fetches in Sidebar, Dashboard,
+Profile page with useUserStore().state.profile — single hook,
+one source, live updating everywhere simultaneously.
+
+Sidebar XP card, Dashboard stat card, Profile XP bar — all read
+from the same useUserStore hook. When Supabase fires the realtime
+event after an XP transaction, all three update in the same render
+cycle.
+
+Enable Realtime on profiles table in Supabase:
+  Dashboard → Database → Replication → Tables → profiles → toggle ON
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 2 — STREAK TRACKING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: Streak not incrementing. Max streak not stored.
+
+Add max_streak column to profiles:
+
+  alter table public.profiles
+    add column if not exists max_streak integer not null default 0;
+
+Replace update_streak function entirely:
+
+  create or replace function public.update_streak(p_user_id uuid)
+  returns jsonb language plpgsql security definer as $$
+  declare
+    v_last    date;
+    v_streak  integer;
+    v_max     integer;
+    v_today   date := current_date;
+    v_result  jsonb;
+  begin
+    select last_active, streak_count, max_streak
+    into v_last, v_streak, v_max
+    from public.profiles where id = p_user_id;
+
+    if v_last = v_today then
+      -- Already visited today, no change
+      return jsonb_build_object(
+        'streak', v_streak, 'max_streak', v_max, 'updated', false
+      );
+    end if;
+
+    if v_last = v_today - interval '1 day' then
+      -- Consecutive day — increment
+      v_streak := v_streak + 1;
+    else
+      -- Streak broken — reset to 1
+      v_streak := 1;
+    end if;
+
+    -- Update max if current exceeds it
+    if v_streak > v_max then
+      v_max := v_streak;
+    end if;
+
+    update public.profiles set
+      streak_count = v_streak,
+      max_streak   = v_max,
+      last_active  = v_today,
+      updated_at   = now()
+    where id = p_user_id;
+
+    return jsonb_build_object(
+      'streak', v_streak, 'max_streak', v_max, 'updated', true
+    );
+  end;
+  $$;
+
+Call this RPC on EVERY app load (not just login):
+
+  In App.tsx inside useEffect that runs when user is set:
+    if (user) {
+      supabase.rpc('update_streak', { p_user_id: user.id })
+        .then(({ data }) => {
+          if (data?.updated) {
+            dispatch({ type: 'SET_PROFILE', payload: {
+              ...profile,
+              streak_count: data.streak,
+              max_streak: data.max_streak
+            }})
+            if (data.streak > 1) {
+              showToast(`🔥 ${data.streak}-day streak!`, 'amber')
+            }
+          }
+        })
+    }
+
+Display max_streak in Profile page:
+  "Current streak: {streak_count} days 🔥"
+  "Best streak: {max_streak} days ⭐"
+  Both sourced from useUserStore().state.profile
+
+Sidebar XP card — show both:
+  🔥 {streak_count} day streak
+  ⭐ Best: {max_streak}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 3 — SHIFTED NUMBER KEYS FOR SHORTCUTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: Shortcuts like Ctrl+! (which requires Shift+1 on keyboard)
+and Ctrl+@ (Shift+2), Ctrl+# (Shift+3), Ctrl+$ (Shift+4),
+Ctrl+% (Shift+5), Ctrl+^ (Shift+6) are not being detected
+because the browser fires different key values.
+
+Fix in normalizeKey() — add shift+number mappings:
+
+  // When Shift is held, number keys produce symbols
+  // e.key gives the symbol directly
+  const shiftSymbols: Record<string, string> = {
+    '!': '!', '@': '@', '#': '#', '$': '$',
+    '%': '%', '^': '^', '&': '&', '*': '*',
+    '(': '(', ')': ')', '_': '_', '+': '+',
+    '~': '~', '<': '<', '>': '>', '?': '?',
+    ':': ':', '"': '"', '{': '{', '}': '}',
+    '|': '|',
+  }
+  if (shiftSymbols[e.key]) return e.key
+
+Fix buildChordArray — when e.shiftKey is true AND the key is a
+symbol (not a letter), do NOT add 'Shift' to the chord array
+separately, because the symbol already encodes the shift:
+
+  function buildChord(e: KeyboardEvent): string[] {
+    const key = normalizeKey(e)
+    const isSymbolFromShift = /^[!@#$%^&*()_+~<>?:"{}|]$/.test(key)
+
+    const chord: string[] = []
+    if (e.ctrlKey)  chord.push('Ctrl')
+    if (e.shiftKey && !isSymbolFromShift) chord.push('Shift')
+    if (e.altKey)   chord.push('Alt')
+    if (!['Ctrl','Shift','Alt'].includes(key)) chord.push(key)
+    return chord
+  }
+
+Update shortcut data entries to match what buildChord now returns:
+
+  // Ctrl+! = user presses Ctrl+Shift+1, key='!', chord=['Ctrl','!']
+  ctrl-exclaim:  keys: ['Ctrl','!']           // open format menu
+  ctrl-shift-@:  keys: ['Ctrl','@']           // time format (Ctrl+Shift+2)
+  ctrl-shift-#:  keys: ['Ctrl','#']           // date format (Ctrl+Shift+3)
+  ctrl-shift-$:  keys: ['Ctrl','$']           // currency (Ctrl+Shift+4)
+  ctrl-shift-%:  keys: ['Ctrl','%']           // percent (Ctrl+Shift+5)
+  ctrl-shift-^:  keys: ['Ctrl','^']           // if used
+  ctrl-backtick: keys: ['Ctrl','`']           // show formulas
+  ctrl-shift-&:  keys: ['Ctrl','&']           // outer border
+  ctrl-shift-~:  keys: ['Ctrl','~']           // general format
+
+Update key cap display for these:
+  Show the actual character pressed, not the shifted description.
+  e.g. show [Ctrl] + [!] not [Ctrl] + [Shift] + [1]
+  The label in the shortcuts data should use the symbol directly.
+
+Update the hint display in challenge screen:
+  For Ctrl+Shift+$ show: "Hold Ctrl, then press Shift+4"
+  Add a sub-hint: "({symbol} is Shift+{number})"
+  Map: ! =Shift+1, @ =Shift+2, # =Shift+3, $ =Shift+4,
+       % =Shift+5, ^ =Shift+6, & =Shift+7, * =Shift+8
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 4 — CUSTOM CONFIRMATION EMAIL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Supabase Dashboard:
+  Authentication → Email Templates → Confirm signup
+
+Replace the template with:
+
+Subject:
+  Confirm your GridCrafters account
+
+Body (HTML):
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      body { margin:0; padding:0; background:#111110;
+             font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+      .wrap { max-width:560px; margin:0 auto; padding:40px 24px; }
+      .logo { font-size:22px; font-weight:800; color:#f0ede6;
+              letter-spacing:-0.5px; margin-bottom:32px; }
+      .logo span { background:linear-gradient(135deg,#8b5cf6,#3b82f6);
+                   -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+      .card { background:#1a1a17; border:1px solid #3d3d38;
+              border-radius:12px; padding:32px; }
+      h1 { font-size:24px; font-weight:700; color:#f0ede6;
+           letter-spacing:-0.4px; margin:0 0 12px; }
+      p  { font-size:15px; color:#c4bfb4; line-height:1.6; margin:0 0 24px; }
+      .btn { display:inline-block; background:linear-gradient(135deg,#8b5cf6,#3b82f6);
+             color:#ffffff; text-decoration:none; font-size:15px;
+             font-weight:600; padding:14px 32px; border-radius:8px;
+             letter-spacing:-0.1px; }
+      .footer { margin-top:28px; font-size:12px; color:#5a5650; line-height:1.5; }
+      .divider { height:1px; background:#3d3d38; margin:24px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="logo">Grid<span>Crafters</span></div>
+      <div class="card">
+        <h1>Confirm your account</h1>
+        <p>You are one click away from mastering Excel through
+        gamified challenges, shortcut battles, and real analyst
+        simulations. Click below to activate your account.</p>
+        <a href="{{ .ConfirmationURL }}" class="btn">
+          Confirm my account →
+        </a>
+        <div class="divider"></div>
+        <p style="margin:0;font-size:13px;color:#8a857a;">
+          If you did not sign up for GridCrafters, you can safely
+          ignore this email.
+        </p>
+      </div>
+      <div class="footer">
+        GridCrafters · Made by Hyatt<br>
+        This link expires in 24 hours.
+      </div>
+    </div>
+  </body>
+  </html>
+
+After email confirmation redirect — handle in App.tsx:
+
+  Supabase redirects to your Site URL after confirmation.
+  Detect the confirmed state and show a welcome screen:
+
+  In Landing.tsx or a dedicated /welcome route, check for
+  the confirmation hash in the URL:
+
+  useEffect(() => {
+    const hash = window.location.hash
+    // Supabase appends #access_token=... after confirmation
+    if (hash.includes('access_token') || hash.includes('type=signup')) {
+      setShowWelcome(true)
+      // Clean the URL
+      window.history.replaceState({}, '', '/')
+    }
+  }, [])
+
+  Welcome overlay (shown over landing page for 4 seconds):
+    bg #111110 full screen centered
+    GridCrafters logo (large, 48px)
+    "Your account is confirmed." — Geist 600 20px #f0ede6
+    "Now you can craft your Excel skills on GridCrafters." — Geist 400 15px #c4bfb4
+    Gradient progress bar counting down 4 seconds
+    Auto-redirect to /dashboard after 4 seconds
+    OR [Start Crafting →] button that goes immediately
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 5 — SHELF FORMATTING KINGS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Keep all existing Formatting Kings code intact (do not delete).
+Just change what is shown to the user.
+
+In Sidebar.tsx — update the Formatting Kings nav item:
+  Remove active styling. Make it look like a "coming soon" item.
+  Add "Soon" chip same as Dashboard Craft and Real Analysts.
+  Clicking it still navigates to /formatting.
+
+In FormattingKings.tsx — replace the entire page content with
+a Coming Soon screen (but keep all the component code imported,
+just don't render the challenge UI):
+
+  export function FormattingKings() {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        minHeight: '70vh', padding: '40px 20px', textAlign: 'center'
+      }}>
+
+        {/* Icon */}
+        <div style={{
+          width: 72, height: 72, borderRadius: 16,
+          background: 'rgba(59,130,246,0.1)',
+          border: '1px solid rgba(59,130,246,0.2)',
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'center', fontSize: 32,
+          marginBottom: 24
+        }}>🎨</div>
+
+        {/* Title */}
+        <h1 style={{
+          fontFamily: 'Geist, sans-serif', fontSize: 28,
+          fontWeight: 700, color: '#f0ede6',
+          letterSpacing: '-0.5px', marginBottom: 12
+        }}>Formatting Kings</h1>
+
+        {/* Subtitle */}
+        <p style={{
+          fontFamily: 'Geist, sans-serif', fontSize: 15,
+          color: '#8a857a', lineHeight: 1.6,
+          maxWidth: 460, marginBottom: 32
+        }}>
+          Learn borders, colors, conditional formatting, and
+          professional Excel design — using only keyboard shortcuts.
+          Launching soon.
+        </p>
+
+        {/* Progress preserved message */}
+        <div style={{
+          background: '#1a1a17',
+          border: '1px solid #3d3d38',
+          borderRadius: 10, padding: '16px 24px',
+          marginBottom: 32, maxWidth: 400
+        }}>
+          <p style={{
+            fontFamily: 'Geist, sans-serif', fontSize: 13,
+            color: '#8a857a', margin: 0, lineHeight: 1.6
+          }}>
+            Your progress is being saved. Everything you complete
+            in Shortcut Masters carries forward to your profile
+            and leaderboard rank.
+          </p>
+        </div>
+
+        {/* Feature preview list */}
+        <div style={{
+          display: 'flex', flexDirection: 'column',
+          gap: 10, maxWidth: 340, width: '100%', marginBottom: 36
+        }}>
+          {[
+            '⌨️  Apply formatting with keyboard shortcuts only',
+            '🎯  Match target spreadsheet format exactly',
+            '📊  Score based on formatting accuracy',
+            '👑  Earn the Formatting King badge',
+          ].map(item => (
+            <div key={item} style={{
+              background: '#1a1a17', border: '1px solid #2c2c28',
+              borderRadius: 8, padding: '10px 14px',
+              fontFamily: 'Geist, sans-serif', fontSize: 13,
+              color: '#c4bfb4', textAlign: 'left'
+            }}>{item}</div>
+          ))}
+        </div>
+
+        {/* Back to shortcuts */}
+        <a href="/shortcuts" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          background: 'linear-gradient(135deg,#8b5cf6,#3b82f6)',
+          color: 'white', textDecoration: 'none',
+          fontFamily: 'Geist, sans-serif', fontSize: 13,
+          fontWeight: 600, padding: '10px 22px', borderRadius: 7
+        }}>← Continue Shortcut Masters</a>
+
+      </div>
+    )
+  }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SUPABASE + VERCEL DEPLOYMENT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run these SQL statements in Supabase SQL Editor
+to make URLs and auth work universally:
+
+  -- Ensure max_streak column exists
+  alter table public.profiles
+    add column if not exists max_streak integer not null default 0;
+
+  -- Grant realtime access
+  grant select on public.profiles to authenticated;
+  grant select on public.leaderboard to authenticated;
+
+  -- Enable realtime on profiles
+  -- (Do this in Dashboard → Database → Replication → profiles → ON)
+
+  -- Fix auth redirect URLs policy
+  -- (Done in Supabase Dashboard, not SQL — see below)
+
+In Supabase Dashboard → Authentication → URL Configuration:
+  Site URL:       https://gridcrafters.vercel.app
+  Redirect URLs:
+    https://gridcrafters.vercel.app/**
+    https://gridcrafters.vercel.app
+    http://localhost:5173/**
+    http://localhost:5173
+
+  This makes auth confirmation links work from any device globally.
+
+STEP 1 — Verify build locally:
+  npm run build
+  Must show 0 TypeScript errors and 0 build errors.
+  Then: npm run preview
+  Open http://localhost:4173
+  Test: sign up → confirm email → see welcome screen → dashboard loads
+
+STEP 2 — Test streak tracking locally:
+  Sign in → check Supabase Table Editor → profiles → last_active = today
+  Close browser → reopen next day (or manually set last_active to yesterday
+  in Supabase Table Editor) → sign in → verify streak_count incremented
+
+STEP 3 — Test XP consistency:
+  Open dashboard and profile in separate browser tabs
+  Complete a challenge
+  Both tabs should update XP within 2 seconds via realtime
+
+STEP 4 — Push to GitHub:
+  git add -A
+  git commit -m "fix: xp sync, streak, key mapping, email, shelf formatting"
+  git push origin main
+
+STEP 5 — Deploy on Vercel:
+  Go to vercel.com → New Project
+  Import your GitHub repository
+  Framework preset: Vite (auto-detected)
+
+  Add Environment Variables in Vercel dashboard:
+    VITE_SUPABASE_URL      → your Supabase project URL
+    VITE_SUPABASE_ANON_KEY → your Supabase anon/public key
+
+  Click Deploy.
+  Wait ~90 seconds for build to complete.
+  Copy the deployment URL (e.g. https://gridcrafters.vercel.app)
+
+STEP 6 — Update Supabase with Vercel URL:
+  Supabase → Authentication → URL Configuration
+  Update Site URL to your Vercel URL
+  Add Vercel URL/** to Redirect URLs list
+  Save.
+
+STEP 7 — Post-deploy smoke test (do this in order):
+  1. Open https://gridcrafters.vercel.app
+  2. Sign up with a real email
+  3. Check inbox — confirmation email arrives with GridCrafters branding
+  4. Click confirm link — lands on welcome screen with the message
+  5. After 4 seconds auto-redirect to /dashboard
+  6. Complete 1 shortcut challenge
+  7. Check: XP in sidebar, dashboard, and profile all show same number
+  8. Check Supabase Table Editor:
+       profiles row — total_xp > 0, streak_count = 1, last_active = today
+       xp_transactions — 1 row for the challenge
+       shortcut_progress — 1 row with status = 'completed'
+       activity_log — 2 rows (started + completed)
+       last_challenge — 1 row
+  9. Sign out → verify redirect to landing page
+  10. Sign in again → streak stays at 1 (same day), last_active unchanged
+
+STEP 8 — Custom domain (optional, do last):
+  Vercel → Project → Settings → Domains → Add domain
+  Update Supabase Site URL and Redirect URLs to custom domain
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1.  useUserStore is the ONLY source for profile/XP/streak data
+2.  Supabase Realtime channel per user on profiles table — always
+3.  update_streak RPC called on every app load, not just login
+4.  max_streak updated in DB whenever streak_count exceeds it
+5.  Shift+number keys (!, @, #, $, %) detected via e.key directly
+6.  Shift is NOT added to chord when key is a symbol character
+7.  Alt+F4 blocked first, before any other keydown processing
+8.  Formatting Kings page shows coming soon — code kept, UI replaced
+9.  Email template uses GridCrafters branding in dark colors
+10. Welcome screen shows after email confirmation before dashboard
+11. Vercel env vars use VITE_ prefix — required for Vite to expose them
+12. Supabase redirect URLs must include both localhost and Vercel URL
+13. Realtime must be enabled on profiles table in Supabase dashboard
+14. npm run build must pass with 0 errors before pushing to GitHub
+15. XP floor 80% of base enforced — minimum a user earns on completion

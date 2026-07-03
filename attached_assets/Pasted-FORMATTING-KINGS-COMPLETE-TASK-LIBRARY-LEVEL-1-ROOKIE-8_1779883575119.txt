@@ -1,0 +1,1186 @@
+FORMATTING KINGS — COMPLETE TASK LIBRARY
+
+LEVEL 1 — ROOKIE (8 tasks)
+Theme: Basic text and number formatting
+Shortcuts used: Ctrl+B, Ctrl+I, Ctrl+U, Ctrl+Shift+$, Ctrl+Shift+%, Ctrl+Shift+#, Ctrl+1
+
+Task 1: Make the Header Row Stand Out
+Scenario:
+  Your manager says the report header looks the same as data rows.
+  "I can't tell where the data starts."
+
+Dataset (plain, no formatting):
+  Row1: Region   | Q1     | Q2     | Q3     | Total
+  Row2: North    | 124000 | 156000 | 182000 | 462000
+  Row3: South    | 98000  | 112000 | 134000 | 344000
+  Row4: East     | 167000 | 198000 | 221000 | 586000
+  Row5: West     | 89000  | 104000 | 128000 | 321000
+
+Tasks to complete (all via keyboard only):
+  1. Select A1:E1 → Bold (Ctrl+B)
+
+Scoring:
+  Header row A1:E1 is bold → 100 pts
+
+Shortcut required: Ctrl+B
+XP reward: 40
+Difficulty: Rookie
+
+Task 2: Emphasize the Totals Column
+Scenario:
+  Your CFO wants the Total column to be bold AND italic.
+  "It needs to pop — it's the most important column."
+
+Dataset: Same as Task 1
+
+Tasks:
+  1. Select E1:E5 → Bold (Ctrl+B)
+  2. Select E1:E5 → Italic (Ctrl+I)
+
+Scoring:
+  E1:E5 bold    → 50 pts
+  E1:E5 italic  → 50 pts
+
+Shortcuts: Ctrl+B, Ctrl+I
+XP reward: 50
+Difficulty: Rookie
+
+Task 3: Mark the Disclaimer Row
+Scenario:
+  Row 7 contains a note: "* Figures in thousands USD"
+  Legal wants it underlined and italic so it looks like a footnote.
+
+Dataset: Adds Row7: * Figures in thousands USD
+
+Tasks:
+  1. Select A7 → Italic (Ctrl+I)
+  2. Select A7 → Underline (Ctrl+U)
+
+Scoring:
+  A7 italic    → 50 pts
+  A7 underline → 50 pts
+
+Shortcuts: Ctrl+I, Ctrl+U
+XP reward: 50
+Difficulty: Rookie
+
+Task 4: Format Revenue as Currency
+Scenario:
+  The finance team sent raw numbers. They need to look like dollars.
+  "These should show $124,000 not 124000."
+
+Dataset:
+  B2:E5 contains plain integers (124000, 156000 etc.)
+
+Tasks:
+  1. Select B2:E5 → Currency format (Ctrl+Shift+$)
+
+Scoring:
+  All cells in B2:E5 show $ format → 100 pts
+  Partial (some cells) → 50 pts
+
+Shortcut: Ctrl+Shift+$
+XP reward: 55
+Difficulty: Rookie
+
+Task 5: Format Growth Column as Percentage
+Scenario:
+  Column F contains growth rates as decimals (0.24, 0.31 etc.)
+  Your manager wants them shown as percentages.
+
+Dataset adds:
+  F1: Growth
+  F2: 0.24
+  F3: 0.14
+  F4: 0.32
+  F5: 0.44
+
+Tasks:
+  1. Select F2:F5 → Percentage format (Ctrl+Shift+%)
+
+Scoring:
+  F2:F5 shows % format → 100 pts
+
+Shortcut: Ctrl+Shift+%
+XP reward: 55
+Difficulty: Rookie
+
+Task 6: Format the Date Column
+Scenario:
+  Column G has order dates stored as serial numbers (45678 etc.)
+  The client wants readable dates like 15-Jan-26.
+
+Dataset adds:
+  G1: Order Date
+  G2: 45678
+  G3: 45690
+  G4: 45701
+  G5: 45712
+
+Tasks:
+  1. Select G2:G5 → Date format (Ctrl+Shift+#)
+
+Scoring:
+  G2:G5 shows date format → 100 pts
+
+Shortcut: Ctrl+Shift+#
+XP reward: 55
+Difficulty: Rookie
+
+Task 7: Remove Wrong Formatting
+Scenario:
+  Someone accidentally formatted the Region column as currency.
+  Column A shows "$North" — fix it back to General format.
+
+Dataset:
+  A2:A5 shows $North, $South, $East, $West (broken currency format)
+
+Tasks:
+  1. Select A2:A5 → Open Format Cells (Ctrl+1) →
+     Number tab → General → Enter
+
+Scoring:
+  A2:A5 shows plain text again → 100 pts
+
+Shortcut: Ctrl+1
+XP reward: 60
+Difficulty: Rookie
+
+Task 8: Full Rookie Report Format
+Scenario:
+  Your first real report submission. Apply all basic formatting
+  your manager expects before sharing with the team.
+
+Dataset: Full sales table (A1:G5)
+
+Tasks (all via keyboard):
+  1. A1:E1 → Bold (Ctrl+B)
+  2. B2:E5 → Currency (Ctrl+Shift+$)
+  3. F2:F5 → Percentage (Ctrl+Shift+%)
+  4. G2:G5 → Date format (Ctrl+Shift+#)
+  5. E1:E5 → Italic (Ctrl+I)
+
+Scoring (20 pts each):
+  Bold headers      → 20
+  Currency data     → 20
+  Percentage growth → 20
+  Date column       → 20
+  Italic totals     → 20
+
+Shortcuts: Ctrl+B, Ctrl+Shift+$, Ctrl+Shift+%, Ctrl+Shift+#, Ctrl+I
+XP reward: 80
+Difficulty: Rookie Boss Task
+
+LEVEL 2 — INTERMEDIATE (8 tasks)
+Theme: Alignment, borders, cell colors, merging, wrapping
+Shortcuts: Alt+H+A+C, Alt+H+B+A, Alt+H+H, Alt+H+F+C, Alt+H+M+C, Alt+H+W, Ctrl+B, Ctrl+Shift+$
+
+Task 9: Center the Header Row
+Scenario:
+  The header labels are left-aligned. Your design standard says
+  all headers must be centered.
+
+Dataset: Sales table with plain left-aligned headers
+
+Tasks:
+  1. Select A1:E1 → Center align (Alt→H→A→C)
+
+Scoring:
+  A1:E1 center aligned → 100 pts
+
+Shortcut: Alt→H→A→C (sequence)
+XP reward: 65
+Difficulty: Intermediate
+
+Task 10: Apply Table Borders
+Scenario:
+  "This report has no borders — it's impossible to read in print."
+  Your manager wants borders on every cell of the data range.
+
+Dataset: Full sales table A1:E6
+
+Tasks:
+  1. Select A1:E6 → Apply all borders (Alt→H→B→A)
+
+Scoring:
+  All cells in A1:E6 have borders → 100 pts
+
+Shortcut: Alt→H→B→A (sequence)
+XP reward: 65
+Difficulty: Intermediate
+
+Task 11: Highlight the Header Row with Color
+Scenario:
+  The client's brand color is dark blue. Header row background
+  must be #003366 (navy). Use the fill color shortcut.
+
+Tasks:
+  1. Select A1:E1 → Open fill color (Alt→H→H) →
+     Select dark blue from color picker → Enter
+
+Scoring:
+  A1:E1 has colored background → 100 pts
+
+Shortcut: Alt→H→H (sequence)
+XP reward: 70
+Difficulty: Intermediate
+
+Task 12: Change Font Color for Totals Row
+Scenario:
+  Row 6 (TOTAL) must have white font so it stands out against
+  the dark background you applied in the previous task.
+
+Tasks:
+  1. Select A6:E6 → Open font color (Alt→H→F→C) →
+     Select white → Enter
+
+Scoring:
+  A6:E6 font color is white → 100 pts
+
+Shortcut: Alt→H→F→C (sequence)
+XP reward: 70
+Difficulty: Intermediate
+
+Task 13: Merge the Report Title
+Scenario:
+  Row 1 has a title "Q3 Sales Report" only in cell A1.
+  It should span across all 5 columns and be centered.
+
+Dataset adds Row 0 (insert row above):
+  A1: Q3 Sales Report (only this cell has content)
+  Data pushed to Row 2 onwards
+
+Tasks:
+  1. Select A1:E1 → Merge and center (Alt→H→M→C)
+
+Scoring:
+  A1:E1 merged and centered → 100 pts
+
+Shortcut: Alt→H→M→C (sequence)
+XP reward: 75
+Difficulty: Intermediate
+
+Task 14: Wrap Text in the Notes Column
+Scenario:
+  Column F contains long notes that overflow into other cells.
+  Wrap the text so it stays inside each cell.
+
+Dataset adds:
+  F1: Notes
+  F2: "Strong performance driven by new enterprise contracts in Q3"
+  F3: "Declined due to regional disruption and supply chain issues"
+  F4: "Highest performing region for third consecutive quarter"
+  F5: "New market entry — growth expected to accelerate in Q4"
+
+Tasks:
+  1. Select F2:F5 → Wrap text (Alt→H→W)
+
+Scoring:
+  F2:F5 has wrap text enabled → 100 pts
+
+Shortcut: Alt→H→W (sequence)
+XP reward: 65
+Difficulty: Intermediate
+
+Task 15: Full Table Formatting
+Scenario:
+  Build a complete formatted table from scratch. Matching the
+  target format is required for sign-off before Monday.
+
+Target format:
+  - Row 1: merged A1:E1, bold, centered, dark blue bg, white font
+  - Row 2 (headers): bold, centered, light gray bg
+  - B3:E6: currency format
+  - A2:E6: all borders
+  - Row 6 (TOTAL): bold, border-top
+
+Tasks:
+  1. A1:E1 → Merge and center (Alt→H→M→C)
+  2. A1:E1 → Bold (Ctrl+B)
+  3. A1:E1 → Fill color dark blue (Alt→H→H)
+  4. A1:E1 → Font color white (Alt→H→F→C)
+  5. A2:E2 → Bold (Ctrl+B)
+  6. A2:E2 → Center align (Alt→H→A→C)
+  7. B3:E6 → Currency (Ctrl+Shift+$)
+  8. A2:E6 → All borders (Alt→H→B→A)
+  9. A6:E6 → Bold (Ctrl+B)
+
+Scoring (10-15 pts each criterion):
+  Merge+center title  → 15
+  Bold title          → 10
+  Title bg color      → 15
+  Title font color    → 10
+  Header bold         → 10
+  Header centered     → 10
+  Currency data       → 15
+  All borders         → 15
+
+Shortcuts: All intermediate shortcuts combined
+XP reward: 100
+Difficulty: Intermediate Boss Task
+
+Task 16: The Strikethrough Review
+Scenario:
+  Three products have been discontinued. Mark them with
+  strikethrough so reviewers know not to include them.
+
+Dataset:
+  A row of product names, 3 of which are discontinued
+
+Tasks:
+  1. Select discontinued product cells → Strikethrough (Ctrl+5)
+
+Scoring:
+  All 3 discontinued cells have strikethrough → 100 pts
+  2 correct → 60 pts · 1 correct → 30 pts
+
+Shortcut: Ctrl+5
+XP reward: 65
+Difficulty: Intermediate
+
+LEVEL 3 — ADVANCED (8 tasks)
+Theme: Conditional formatting, table styles, number formats, freeze panes, autofit
+Shortcuts: Alt+H+L+N, Alt+H+T, Alt+H+O+I, Alt+W+F+F, Ctrl+1, Ctrl+Shift+~, Ctrl+Shift+@
+
+Task 17: Highlight Cells Above Target
+Scenario:
+  Your KPI target is $150,000. Any Q3 value above target should
+  auto-highlight green. Use conditional formatting.
+
+Dataset: Q3 column D2:D5 (values: 182, 134, 221, 128 — in thousands)
+
+Tasks:
+  1. Select D2:D5
+  2. Open conditional formatting (Alt→H→L→N)
+  3. Highlight cells greater than 150 → green fill
+
+Scoring:
+  D2:D5 has conditional formatting rule applied → 100 pts
+  Correct threshold (150) → bonus 20 pts
+
+Shortcut: Alt→H→L→N (sequence)
+XP reward: 85
+Difficulty: Advanced
+
+Task 18: Apply a Table Style
+Scenario:
+  Raw data tables look amateur. Format the dataset as an
+  official Excel Table with banded rows and filter arrows.
+
+Dataset: A1:E6 full sales table
+
+Tasks:
+  1. Select A1:E6 → Format as table (Alt→H→T)
+  2. Confirm header row → Enter
+
+Scoring:
+  Table style applied with banded rows → 60 pts
+  Filter arrows on header row → 40 pts
+
+Shortcut: Alt→H→T (sequence)
+XP reward: 85
+Difficulty: Advanced
+
+Task 19: AutoFit All Columns
+Scenario:
+  After pasting data, several columns show #####.
+  AutoFit every column so all content is visible.
+
+Dataset: Columns A–G, some showing ##### due to narrow width
+
+Tasks:
+  1. Select all → Ctrl+A
+  2. AutoFit column width (Alt→H→O→I)
+
+Scoring:
+  All ##### resolved → 50 pts per column resolved
+  All 7 columns properly sized → 100 pts
+
+Shortcuts: Ctrl+A then Alt→H→O→I (sequence)
+XP reward: 75
+Difficulty: Advanced
+
+Task 20: Freeze the Header Row
+Scenario:
+  The report has 50+ rows. When scrolling, headers disappear.
+  Freeze Row 1 so it stays visible while scrolling.
+
+Tasks:
+  1. Click cell A2 (row below header)
+  2. Freeze pane (Alt→W→F→F)
+
+Scoring:
+  Row 1 frozen (freeze line visible below row 1) → 100 pts
+
+Shortcut: Alt→W→F→F (sequence)
+XP reward: 75
+Difficulty: Advanced
+
+Task 21: Custom Number Format — Thousands
+Scenario:
+  Finance wants B2:E5 to show values in thousands with a "k"
+  suffix — e.g. 124000 should display as "124k".
+
+Tasks:
+  1. Select B2:E5 → Open Format Cells (Ctrl+1)
+  2. Number → Custom → type: 0"k" → OK
+
+Scoring:
+  B2:E5 shows values with k suffix → 100 pts
+  Correct custom format code used → bonus 20 pts
+
+Shortcut: Ctrl+1 (then navigate with keyboard)
+XP reward: 90
+Difficulty: Advanced
+
+Task 22: Format as Time Value
+Scenario:
+  Column H contains time durations stored as decimals.
+  Format them to show as HH:MM time values.
+
+Dataset adds:
+  H1: Call Duration
+  H2: 0.0347 (represents 00:50 minutes)
+  H3: 0.0625 (represents 01:30 minutes)
+  H4: 0.0208 (represents 00:30 minutes)
+  H5: 0.0486 (represents 01:10 minutes)
+
+Tasks:
+  1. Select H2:H5 → Time format (Ctrl+Shift+@)
+
+Scoring:
+  H2:H5 shows time format → 100 pts
+
+Shortcut: Ctrl+Shift+@
+XP reward: 85
+Difficulty: Advanced
+
+Task 23: Conditional Color Scale (Low to High)
+Scenario:
+  Show the entire B2:D5 range as a color scale — lowest
+  values red, highest values green, mid values yellow.
+
+Tasks:
+  1. Select B2:D5
+  2. Open conditional formatting (Alt→H→L→N)
+  3. Color Scales → Red-Yellow-Green
+
+Scoring:
+  Color scale applied to B2:D5 → 100 pts
+  Correct scale direction (low=red, high=green) → bonus 20 pts
+
+Shortcut: Alt→H→L→N (sequence)
+XP reward: 90
+Difficulty: Advanced
+
+Task 24: Advanced Full Report Build
+Scenario:
+  This is the Advanced Boss Task. You have 8 minutes to apply
+  professional-grade formatting to a raw management report
+  using only keyboard shortcuts.
+
+Target format:
+  - Title row: merged, bold, dark header color, white text, 16pt font
+  - Header row: banded table style (Alt→H→T)
+  - Data: currency format, thousands suffix via custom format
+  - Q3 column: conditional formatting green/red above/below target
+  - All columns: autofitted (Alt→H→O→I)
+  - Row 1: frozen pane (Alt→W→F→F)
+  - Totals row: bold + border-top + different bg color
+  - Notes column: wrap text (Alt→H→W)
+
+Tasks (10 steps):
+  1.  A1:H1 → Merge and center (Alt→H→M→C)
+  2.  A1:H1 → Bold (Ctrl+B)
+  3.  A1:H1 → Fill color (Alt→H→H) → dark color
+  4.  A1:H1 → Font color white (Alt→H→F→C)
+  5.  A2:H2 → Format as table (Alt→H→T)
+  6.  B3:E7 → Currency format (Ctrl+Shift+$)
+  7.  D3:D7 → Conditional formatting (Alt→H→L→N) → >150 green
+  8.  Ctrl+A → AutoFit all (Alt→H→O→I)
+  9.  Select A3 → Freeze pane (Alt→W→F→F)
+  10. H3:H7 → Wrap text (Alt→H→W)
+
+Scoring (10 pts per task, 10 bonus pts for full completion):
+  Each completed step → 10 pts
+  All 10 complete     → +10 bonus
+
+XP reward: 130
+Time limit: 8 minutes
+Difficulty: Advanced Boss Task
+
+LEVEL 4 — EXPERT (8 tasks)
+Theme: Speed, multi-step formatting, professional reports under time pressure
+All shortcuts combined — speed and accuracy both scored
+
+Task 25: Speed Round — Format in 60 Seconds
+Scenario:
+  Board meeting in 5 minutes. This report looks terrible.
+  You have 60 seconds to apply the minimum acceptable formatting.
+
+Timer: 60 seconds — visible countdown
+
+Required in 60 seconds:
+  1. A1:E1 bold (Ctrl+B)
+  2. B2:E5 currency (Ctrl+Shift+$)
+  3. A1:E5 borders (Alt→H→B→A)
+  4. A1:E1 center align (Alt→H→A→C)
+
+Scoring:
+  Each task completed within timer → 25 pts
+  All 4 within time → bonus 30 pts
+  Time remaining bonus: 1 pt per second remaining
+
+XP reward: 100 + time bonus
+Difficulty: Expert
+
+Task 26: Replicate Exact Target — Pixel Perfect
+Scenario:
+  You must format your sheet to match the target EXACTLY.
+  Score is based on how many properties match precisely.
+
+Target (shown in left pane — read only):
+  - A1:G1: merged, bold, centered, #1F3864 bg, white font
+  - A2:G2: bold, centered, #D6E4F0 bg, #1F3864 font
+  - B3:E7: $#,##0 currency, right-aligned
+  - F3:F7: 0.0% percentage
+  - G3:G7: dd-mmm-yy date format, centered
+  - A3:G7: all thin borders
+  - A7:G7: bold, #E2EFDA bg
+  - D3:D7: conditional green (>150) red (<100)
+
+Scoring — 1 pt per matching cell property:
+  ~200 total checkable properties
+  Score = (matched / total) × 100
+
+Shortcuts required:
+  Alt→H→M→C, Ctrl+B, Alt→H→H, Alt→H→F→C, Alt→H→A→C,
+  Ctrl+Shift+$, Ctrl+Shift+%, Ctrl+Shift+#, Alt→H→B→A,
+  Alt→H→L→N, Ctrl+1
+
+XP reward: 150
+Time limit: 10 minutes
+Difficulty: Expert
+
+Task 27: The Broken Report
+Scenario:
+  You inherited a spreadsheet with 12 formatting errors.
+  Someone applied wrong formats everywhere. Fix all 12.
+
+Errors pre-applied to the dataset:
+  1.  A1:E1 is italic (should be bold)         → Ctrl+I to remove, Ctrl+B
+  2.  B2:E5 shows as percentage (should be $)  → Ctrl+Shift+$ to fix
+  3.  F2:F5 shows as currency (should be %)    → Ctrl+Shift+%
+  4.  G2:G5 is plain number (should be date)   → Ctrl+Shift+#
+  5.  A1:E1 is left-aligned (should be center) → Alt→H→A→C
+  6.  Totals row has no bold                   → Ctrl+B
+  7.  Title is not merged                      → Alt→H→M→C
+  8.  No borders on table                      → Alt→H→B→A
+  9.  Notes column text overflows (no wrap)    → Alt→H→W
+  10. Header bg is red (should be blue)        → Alt→H→H
+  11. Data font is white on white (invisible)  → Alt→H→F→C
+  12. Column A is too narrow (#####)           → Alt→H→O→I
+
+Scoring: 8-9 pts per fix corrected = 100 pts total
+Hint: Error list shown — shortcut to fix is NOT shown
+
+XP reward: 140
+Difficulty: Expert
+
+Task 28: The Consultant's Deliverable
+Scenario:
+  You are a consultant. The client is receiving this report in
+  2 hours. It must look like it came from McKinsey.
+  Use only keyboard shortcuts — your mouse is broken.
+
+Standard:
+  McKinsey-style: navy headers, white text, thin borders,
+  no color in data except totals row (light gray), numbers
+  in $ thousands, growth as %, dates readable, all autofit.
+
+Tasks (12 steps — full professional format):
+  1.  Insert title row → Ctrl+Shift+= (or Alt→H→I→R)
+  2.  A1:G1 → Merge center (Alt→H→M→C)
+  3.  Type report title
+  4.  A1:G1 → Bold (Ctrl+B), navy bg (Alt→H→H), white font (Alt→H→F→C)
+  5.  A2:G2 → Bold (Ctrl+B), center (Alt→H→A→C), light gray bg (Alt→H→H)
+  6.  B3:E7 → Currency (Ctrl+Shift+$)
+  7.  F3:F7 → Percentage (Ctrl+Shift+%)
+  8.  G3:G7 → Date (Ctrl+Shift+#)
+  9.  A2:G7 → All borders (Alt→H→B→A)
+  10. A7:G7 → Bold (Ctrl+B), light gray bg (Alt→H→H)
+  11. Ctrl+A → AutoFit (Alt→H→O→I)
+  12. A3 selected → Freeze pane (Alt→W→F→F)
+
+Scoring: 8 pts per step = 96 + 4 bonus for all complete
+XP reward: 160
+Time limit: 12 minutes
+Difficulty: Expert
+
+Task 29: Data Validation Visual
+Scenario:
+  Your status column has conditional formatting rules to show
+  Green for On Track, Amber for At Risk, Red for Critical.
+  Build this from scratch using only keyboard shortcuts.
+
+Dataset adds:
+  H1: Status
+  H2: On Track
+  H3: At Risk
+  H4: Critical
+  H5: On Track
+  H6: Critical
+
+Tasks:
+  1. Select H2:H6 → Conditional formatting (Alt→H→L→N)
+  2. Rule 1: text contains "On Track" → green fill
+  3. Rule 2: text contains "At Risk"  → amber fill
+  4. Rule 3: text contains "Critical" → red fill
+
+Scoring:
+  Rule 1 correct → 34 pts
+  Rule 2 correct → 33 pts
+  Rule 3 correct → 33 pts
+
+Shortcut: Alt→H→L→N repeated for each rule
+XP reward: 120
+Difficulty: Expert
+
+Task 30: Format Audit
+Scenario:
+  A new hire formatted this report. Audit every cell and fix
+  anything that doesn't meet company standards.
+  Standards document is shown on screen (reference panel).
+
+Company standards:
+  1. All headers: bold, centered, #003366 bg, white font
+  2. All currency: Ctrl+Shift+$, right-aligned
+  3. All percentages: one decimal place, Ctrl+1 → 0.0%
+  4. All dates: dd-mmm-yy, Ctrl+Shift+#
+  5. All tables: borders on every cell, Alt→H→B→A
+  6. Title rows: merged, 14pt font size via Ctrl+1
+  7. Totals: bold, top border, #E2EFDA bg
+  8. No text overflow: wrap text on all text columns
+
+Pre-applied errors (12 cells with wrong format):
+  Randomly distributed — user must identify and fix each one
+
+Scoring: Each corrected cell → 8 pts, max 96 + 4 completion bonus
+XP reward: 150
+Time limit: 15 minutes
+Difficulty: Expert
+
+Task 31: Expert Speed Format — 90 Seconds
+Scenario:
+  You are presenting to the board in 90 seconds.
+  Apply 8 formatting steps as fast as possible.
+  Score = accuracy × speed multiplier.
+
+Tasks:
+  1. A1:F1 → Merge center (Alt→H→M→C)
+  2. A1:F1 → Bold + bg color + white font
+  3. A2:F2 → Bold + center
+  4. B3:E7 → Currency
+  5. F3:F7 → Percentage
+  6. A2:F7 → All borders
+  7. A7:F7 → Bold + gray bg
+  8. Ctrl+A → AutoFit all
+
+Speed multiplier:
+  Complete in <45s → ×2.0 XP
+  Complete in <60s → ×1.5 XP
+  Complete in <90s → ×1.0 XP
+  Over 90 seconds → ×0.5 XP (penalty)
+
+XP reward: 100 × speed multiplier
+Difficulty: Expert Speed Challenge
+
+Task 32: Expert Boss — The Full McKinsey Pack
+Scenario:
+  This is the Expert final submission. You must produce a
+  completely formatted management report with zero errors,
+  in under 15 minutes, using only keyboard shortcuts.
+  A senior partner is reviewing before submission.
+
+Evaluation criteria (100 total points):
+  Title (merged, bold, brand colors)      10 pts
+  Header row (bold, centered, colored)    10 pts
+  Data formatting ($, %, date correct)    15 pts
+  Borders (all cells bordered)            10 pts
+  Totals row (bold, colored, border-top)  10 pts
+  Conditional formatting (traffic light)  15 pts
+  AutoFit (no overflow, no #####)         10 pts
+  Freeze pane (row 1 frozen)              10 pts
+  Wrap text (notes column)                 5 pts
+  Custom number format (k suffix)          5 pts
+
+All 10 criteria checked by the validator.
+Partial credit awarded per criterion.
+
+Shortcuts required (all Expert shortcuts):
+  Ctrl+B, Ctrl+I, Ctrl+U, Ctrl+5
+  Ctrl+1, Ctrl+Shift+$, Ctrl+Shift+%, Ctrl+Shift+#, Ctrl+Shift+@
+  Alt→H→A→C, Alt→H→B→A, Alt→H→H, Alt→H→F→C
+  Alt→H→M→C, Alt→H→W, Alt→H→T, Alt→H→L→N
+  Alt→H→O→I, Alt→W→F→F, Ctrl+A
+
+XP reward: 200
+Time limit: 15 minutes
+Badge unlocked: 👑 Formatting King (on 85%+ score)
+Difficulty: Expert Boss
+
+SUMMARY TABLE
+Level       | Tasks  | Shortcuts Focus              | XP Range  | Time Limit
+────────────|────────|──────────────────────────────|───────────|───────────
+Rookie      | 1–8    | Ctrl+B/I/U, Ctrl+Shift+$/%/# | 40–80     | None
+Intermediate| 9–16   | Alt sequences, borders,       | 65–100    | None
+            |        | merge, color, wrap            |           |
+Advanced    | 17–24  | Conditional, table style,     | 75–130    | 8 min (Boss)
+            |        | freeze, autofit, custom fmt   |           |
+Expert      | 25–32  | All shortcuts, speed scoring, | 100–200   | 60–15 min
+            |        | pixel-perfect matching        |           |You said: add conditional formatting in expert leveladd conditional formatting in expert level5:34 PMClaude responded: Here are the Expert level tasks with conditional formatting fully integrated:Here are the Expert level tasks with conditional formatting fully integrated:
+
+EXPERT LEVEL — CONDITIONAL FORMATTING TASKS
+All 8 Expert tasks rebuilt with conditional formatting as a core requirement
+
+Task 25: Traffic Light Status System
+Scenario:
+  Your operations dashboard needs a traffic light system.
+  The board cannot read raw numbers — they need instant
+  visual signals. Red = danger, amber = watch, green = good.
+
+Dataset:
+  Col A: Region    Col B: Target  Col C: Actual  Col D: Variance  Col E: Status
+  North            150000         182000          32000            On Track
+  South            150000         134000         -16000            At Risk
+  East             150000         221000          71000            On Track
+  West             150000         128000         -22000            Critical
+  Central          150000         156000           6000            On Track
+
+Tasks (keyboard only):
+  Step 1: Select C2:C6
+          Alt→H→L→N → Highlight Cell Rules → Greater Than
+          Value: 150000 → Green Fill with Dark Green Text → Enter
+
+  Step 2: Select C2:C6
+          Alt→H→L→N → Highlight Cell Rules → Between
+          Value: 130000 and 150000 → Yellow Fill with Dark Yellow Text → Enter
+
+  Step 3: Select C2:C6
+          Alt→H→L→N → Highlight Cell Rules → Less Than
+          Value: 130000 → Red Fill with Dark Red Text → Enter
+
+  Step 4: Select E2:E6
+          Alt→H→L→N → Highlight Cell Rules → Text that Contains
+          "On Track" → Green Fill → Enter
+
+  Step 5: Select E2:E6
+          Alt→H→L→N → Text that Contains
+          "At Risk" → Yellow Fill → Enter
+
+  Step 6: Select E2:E6
+          Alt→H→L→N → Text that Contains
+          "Critical" → Red Fill → Enter
+
+Scoring:
+  Actual column rules (3 rules)  → 15 pts each = 45 pts
+  Status column rules (3 rules)  → 15 pts each = 45 pts
+  All 6 rules correct            → 10 bonus pts
+
+Shortcut: Alt→H→L→N (used 6 times)
+XP reward: 120
+Difficulty: Expert
+
+Task 26: Data Bar Visualization
+Scenario:
+  Your manager wants a bar chart feel inside the cells.
+  "I don't want a separate chart — just show me the bars
+  inside the cells. Sales team will understand instantly."
+
+Dataset:
+  Col A: Salesperson   Col B: Sales ($k)  Col C: Calls  Col D: Conversion %
+  Alex                 287000             145           0.48
+  Priya                198000             132           0.41
+  Marcus               342000             178           0.55
+  Jordan               156000             98            0.37
+  Sam                  423000             201           0.61
+
+Tasks:
+  Step 1: Select B2:B6
+          Alt→H→L→N → Data Bars → Gradient Fill → Blue → Enter
+
+  Step 2: Select C2:C6
+          Alt→H→L→N → Data Bars → Gradient Fill → Green → Enter
+
+  Step 3: Select D2:D6
+          Alt→H→L→N → Data Bars → Gradient Fill → Orange → Enter
+
+  Step 4: Select B2:B6 → Currency format
+          Ctrl+Shift+$
+
+  Step 5: Select D2:D6 → Percentage format
+          Ctrl+Shift+%
+
+  Step 6: Select A1:D1 → Bold + Center
+          Ctrl+B then Alt→H→A→C
+
+Scoring:
+  Sales data bars (blue)        → 20 pts
+  Calls data bars (green)       → 20 pts
+  Conversion data bars (orange) → 20 pts
+  Currency format correct       → 15 pts
+  Percentage format correct     → 15 pts
+  Headers bold + centered       → 10 pts
+
+XP reward: 130
+Difficulty: Expert
+
+Task 27: Icon Sets for KPI Dashboard
+Scenario:
+  The executive team wants arrow icons inside cells.
+  Up arrow = exceeding target, right arrow = on track,
+  down arrow = below target. No additional columns allowed.
+
+Dataset:
+  Col A: KPI Name        Col B: Score  Col C: Target  Col D: Achievement %
+  Customer Satisfaction  87            80              1.09
+  Net Promoter Score     42            50              0.84
+  Revenue Growth         0.23          0.20            1.15
+  Cost Reduction         0.18          0.15            1.20
+  Employee Retention     0.91          0.85            1.07
+  Market Share           0.34          0.40            0.85
+  Product Quality        94            90              1.04
+
+Tasks:
+  Step 1: Select D2:D8
+          Alt→H→L→N → Icon Sets → Directional → 3 Arrows (Colored)
+          Rule: >= 1.1 → green up arrow
+                >= 0.9 → yellow right arrow
+                < 0.9  → red down arrow → Enter
+
+  Step 2: Select B2:B8
+          Alt→H→L→N → Highlight Cells → Greater Than
+          Formula: =$C2 (greater than target) → Green → Enter
+
+  Step 3: Select A1:D1 → Merge and center (Alt→H→M→C)
+  Step 4: A1:D1 → Bold (Ctrl+B)
+  Step 5: A1:D1 → Fill color navy (Alt→H→H)
+  Step 6: A1:D1 → Font color white (Alt→H→F→C)
+  Step 7: A1:D8 → All borders (Alt→H→B→A)
+  Step 8: Ctrl+A → AutoFit (Alt→H→O→I)
+
+Scoring:
+  Icon set applied correctly     → 30 pts
+  Direction rules correct        → 20 pts
+  Score vs target highlighting   → 20 pts
+  Header formatting              → 15 pts
+  Borders + autofit              → 15 pts
+
+XP reward: 140
+Difficulty: Expert
+
+Task 28: Duplicate Highlighter
+Scenario:
+  Your data team suspects duplicate entries in the customer list.
+  Highlight all duplicates in red immediately — audit meeting
+  starts in 10 minutes.
+
+Dataset:
+  Col A: Customer ID   Col B: Company Name    Col C: Region
+  C001                 Acme Corp              North
+  C002                 GlobalTech             East
+  C001                 Acme Corp              North   ← duplicate
+  C003                 NovaSystems            West
+  C004                 BlueStar               South
+  C002                 GlobalTech             East    ← duplicate
+  C005                 RedPoint               North
+  C003                 NovaSystems            West    ← duplicate
+  C006                 DataFlow               East
+  C004                 BlueStar               South   ← duplicate
+
+Tasks:
+  Step 1: Select A2:A11
+          Alt→H→L→N → Highlight Cell Rules → Duplicate Values
+          → Red Fill with Dark Red Text → Enter
+
+  Step 2: Select B2:B11
+          Alt→H→L→N → Duplicate Values → Red Fill → Enter
+
+  Step 3: Select A1:C1 → Bold (Ctrl+B)
+  Step 4: Select A1:C1 → Center (Alt→H→A→C)
+  Step 5: Select A1:C11 → All borders (Alt→H→B→A)
+  Step 6: Ctrl+A → AutoFit (Alt→H→O→I)
+
+Scoring:
+  Customer ID duplicates highlighted  → 30 pts
+  Company Name duplicates highlighted → 30 pts
+  Headers bold + centered             → 15 pts
+  Borders applied                     → 15 pts
+  AutoFit applied                     → 10 pts
+
+XP reward: 125
+Time limit: 10 minutes
+Difficulty: Expert
+
+Task 29: Top and Bottom Performers
+Scenario:
+  Your sales director wants to instantly see the top 3
+  and bottom 3 performers highlighted differently.
+  "Green for stars, red for underperformers — every week."
+
+Dataset:
+  Col A: Sales Rep  Col B: Jan    Col C: Feb    Col D: Mar    Col E: Q1 Total
+  Alex              45000         52000         61000         158000
+  Priya             38000         41000         44000         123000
+  Marcus            67000         71000         78000         216000
+  Jordan            29000         31000         28000          88000
+  Sam               72000         68000         81000         221000
+  Taylor            44000         39000         47000         130000
+  Morgan            31000         35000         29000          95000
+  Casey             58000         62000         69000         189000
+
+Tasks:
+  Step 1: Select E2:E9
+          Alt→H→L→N → Top/Bottom Rules → Top 3 Items
+          → Green Fill with Dark Green Text → Enter
+
+  Step 2: Select E2:E9
+          Alt→H→L→N → Top/Bottom Rules → Bottom 3 Items
+          → Red Fill with Dark Red Text → Enter
+
+  Step 3: Select B2:D9
+          Alt→H→L→N → Data Bars → Solid Fill → Blue → Enter
+
+  Step 4: Select E2:E9 → Currency format (Ctrl+Shift+$)
+  Step 5: Select B2:D9 → Currency format (Ctrl+Shift+$)
+  Step 6: A1:E1 → Bold + Center (Ctrl+B then Alt→H→A→C)
+  Step 7: A1:E9 → All borders (Alt→H→B→A)
+  Step 8: A1:E1 → Fill color (Alt→H→H) → dark blue
+  Step 9: A1:E1 → Font color white (Alt→H→F→C)
+
+Scoring:
+  Top 3 conditional rule correct     → 20 pts
+  Bottom 3 conditional rule correct  → 20 pts
+  Monthly data bars                  → 15 pts
+  Currency format on all numbers     → 15 pts
+  Header formatting (bold/bg/font)   → 15 pts
+  Borders applied                    → 15 pts
+
+XP reward: 145
+Difficulty: Expert
+
+Task 30: Variance Analysis Heatmap
+Scenario:
+  Finance needs a full heatmap of monthly variance across
+  all regions. Color intensity must reflect magnitude —
+  deeper red = worse performance, deeper green = better.
+  This goes to the CFO in 20 minutes.
+
+Dataset:
+  Variance from target ($k):
+       Col B: Jan  Col C: Feb  Col D: Mar  Col E: Apr  Col F: May  Col G: Jun
+  North   +32      -8          +41         +12         -22         +18
+  South  -16       -31         -12         -44         -8          +5
+  East   +71       +52         +83         +61         +48         +77
+  West   -22       -18         -41         -15         -33         -28
+  Central +6       -3          +14         +8          -1          +11
+
+Tasks:
+  Step 1: Select B2:G6
+          Alt→H→L→N → Color Scales → Green-Yellow-Red
+          (green=high positive, red=high negative) → Enter
+
+  Step 2: Select B2:G6
+          Alt→H→L→N → New Rule → Format only cells that contain
+          Cell value < -30 → Bold + Red font → Enter
+          (extreme underperformers get bold red text too)
+
+  Step 3: Select B2:G6
+          Alt→H→L→N → New Rule → Format only cells that contain
+          Cell value > 60 → Bold + Dark Green font → Enter
+          (extreme overperformers get bold green text)
+
+  Step 4: A1:G1 → Merge center (Alt→H→M→C)
+  Step 5: A1:G1 → Bold (Ctrl+B)
+  Step 6: A1:G1 + A2:A6 → Fill color (Alt→H→H) → navy
+  Step 7: A1:G1 + A2:A6 → Font color white (Alt→H→F→C)
+  Step 8: A1:G6 → All borders (Alt→H→B→A)
+  Step 9: Ctrl+A → AutoFit (Alt→H→O→I)
+  Step 10: A3 selected → Freeze pane (Alt→W→F→F)
+
+Scoring:
+  Color scale applied (3-color)           → 25 pts
+  Extreme negative rule (bold red text)   → 15 pts
+  Extreme positive rule (bold green text) → 15 pts
+  Header row formatting                   → 10 pts
+  Row labels formatting                   → 10 pts
+  Borders applied                         → 10 pts
+  AutoFit applied                         → 8 pts
+  Freeze pane applied                     → 7 pts
+
+XP reward: 160
+Time limit: 20 minutes
+Difficulty: Expert
+
+Task 31: Expiry Date Alert System
+Scenario:
+  You manage a product inventory. Contracts expire on different
+  dates. Items expiring within 30 days need orange highlight.
+  Items already expired need red. Items safe need green.
+  This must update automatically based on today's date.
+
+Dataset:
+  Col A: Product ID   Col B: Product Name    Col C: Expiry Date   Col D: Status
+  P001                Enterprise License     [today+5 days]        Active
+  P002                Support Contract       [today-10 days]       Expired
+  P003                SaaS Subscription      [today+45 days]       Active
+  P004                Hardware Warranty      [today+22 days]       Active
+  P005                API Access             [today-3 days]        Expired
+  P006                Maintenance Plan       [today+91 days]       Active
+  P007                Cloud Storage          [today+18 days]       Active
+  P008                Data Backup            [today+60 days]       Active
+
+Tasks:
+  Step 1: Select C2:C9
+          Alt→H→L→N → New Rule → Use formula to determine:
+          Formula: =C2<TODAY()
+          Format: Red Fill + Red Bold Font → Enter
+          (already expired)
+
+  Step 2: Select C2:C9
+          Alt→H→L→N → New Rule → Use formula:
+          Formula: =AND(C2>=TODAY(), C2<=TODAY()+30)
+          Format: Orange Fill + Dark Orange Font → Enter
+          (expiring within 30 days)
+
+  Step 3: Select C2:C9
+          Alt→H→L→N → New Rule → Use formula:
+          Formula: =C2>TODAY()+30
+          Format: Green Fill + Dark Green Font → Enter
+          (safe — more than 30 days remaining)
+
+  Step 4: Select D2:D9
+          Alt→H→L→N → Text Contains "Expired" → Red Fill → Enter
+
+  Step 5: C2:C9 → Date format (Ctrl+Shift+#)
+  Step 6: A1:D1 → Bold + Center (Ctrl+B then Alt→H→A→C)
+  Step 7: A1:D1 → Fill navy (Alt→H→H)
+  Step 8: A1:D1 → White font (Alt→H→F→C)
+  Step 9: A1:D9 → All borders (Alt→H→B→A)
+  Step 10: Ctrl+A → AutoFit (Alt→H→O→I)
+
+Scoring:
+  Expired rule (formula based)          → 20 pts
+  Expiring soon rule (AND formula)      → 20 pts
+  Safe rule (>30 days formula)          → 20 pts
+  Status text rule                      → 10 pts
+  Date format on expiry column          → 10 pts
+  Header formatting (3 properties)      → 10 pts
+  Borders + AutoFit                     → 10 pts
+
+XP reward: 170
+Time limit: 15 minutes
+Difficulty: Expert
+
+Task 32: Expert Boss — Full Management Pack
+Scenario:
+  You are submitting the quarterly management report pack.
+  It covers 3 datasets on 3 sheets. Every dataset needs
+  professional formatting including conditional formatting.
+  A senior partner is reviewing. Zero tolerance for errors.
+  You have 20 minutes. Only keyboard shortcuts allowed.
+
+SHEET 1 — Sales Performance:
+  Dataset: 8 sales reps × 4 quarters + totals
+  Required conditional formatting:
+    - Top 25% of annual totals → Green fill (Top/Bottom Rules)
+    - Bottom 25% of annual totals → Red fill
+    - Quarterly data bars → Blue gradient (all 4 quarters)
+    - Any quarter where value dropped vs previous → Orange font
+
+  Required general formatting:
+    - Title: merged, bold, navy bg, white font
+    - Headers: bold, centered, light blue bg
+    - Data: currency format (Ctrl+Shift+$)
+    - Totals column: bold + right border
+    - Totals row: bold + top border + light gray bg
+    - AutoFit all (Ctrl+A → Alt→H→O→I)
+    - Freeze row 2 (Alt→W→F→F)
+
+SHEET 2 — KPI Dashboard:
+  Dataset: 10 KPIs with current, target, variance, trend
+  Required conditional formatting:
+    - Variance column: color scale red→yellow→green
+    - Trend column: icon sets (arrows) based on % change
+    - KPIs below 80% of target: entire row red fill (formula rule)
+    - KPIs above 110% of target: entire row green fill (formula rule)
+
+  Required general formatting:
+    - Title merged across all columns
+    - Achievement % column: percentage format (Ctrl+Shift+%)
+    - Variance column: custom format +0;-0;"—" via Ctrl+1
+    - All borders, autofit, freeze row 1
+
+SHEET 3 — Expiry & Risk Register:
+  Dataset: 12 contracts with dates, status, risk level
+  Required conditional formatting:
+    - Expiry date: formula =C2<TODAY() → red (expired)
+    - Expiry date: formula =AND(C2>=TODAY(),C2<TODAY()+30) → orange
+    - Risk level "High" text → red bold font
+    - Risk level "Low" text → green font
+    - Duplicate Contract IDs → yellow highlight
+
+  Required general formatting:
+    - Dates formatted (Ctrl+Shift+#)
+    - Text columns: wrap text (Alt→H→W)
+    - Full borders, autofit
+
+SCORING (100 pts total):
+
+  Sheet 1 — Sales:
+    Conditional formatting (4 rules)  → 5 pts each = 20 pts
+    General formatting (8 criteria)   → 2.5 pts each = 20 pts
+
+  Sheet 2 — KPI:
+    Conditional formatting (4 rules)  → 5 pts each = 20 pts
+    General formatting (6 criteria)   → 2 pts each = 12 pts
+
+  Sheet 3 — Risk:
+    Conditional formatting (5 rules)  → 4 pts each = 20 pts
+    General formatting (3 criteria)   → 2.67 pts each = 8 pts
+
+  Bonus:
+    All 3 sheets complete → +10 pts
+    Under 15 minutes      → +10 pts speed bonus
+    Zero errors           → +5 pts perfectionist bonus
+
+XP reward: 250
+Badge unlocked: 👑 Formatting King (on 85%+ score)
+             + ⚡ Speed Demon (if under 12 minutes)
+             + 🎯 Perfectionist (if zero errors)
+Time limit: 20 minutes
+Difficulty: Expert Boss — Final Submission
+
+CONDITIONAL FORMATTING SHORTCUT REFERENCE
+Rule Type              Shortcut Path                        Notes
+─────────────────────────────────────────────────────────────────────────
+Highlight cells        Alt→H→L→N → H → [rule type]        Greater/Less/Between
+Top/Bottom rules       Alt→H→L→N → T → [top or bottom]    Top N, Bottom N, Top %
+Data bars              Alt→H→L→N → D → [color]            Gradient or solid fill
+Color scales           Alt→H→L→N → C → [scale type]       2-color or 3-color
+Icon sets              Alt→H→L→N → I → [icon type]        Arrows, flags, shapes
+Formula-based rule     Alt→H→L→N → N → "Use formula"      Most powerful type
+Duplicate values       Alt→H→L→N → H → Duplicate Values   Highlights dupes
+Manage/edit rules      Alt→H→L→N → M                      Edit or delete rules
+Clear all rules        Alt→H→L→N → C → Clear from Sheet   Nuclear option
+
+LEVEL SUMMARY WITH CONDITIONAL FORMATTING
+Level        Tasks  CF Complexity                          Max XP
+─────────────────────────────────────────────────────────────────
+Rookie       1–8    None                                   80
+Intermediate 9–16   None (layout/color only)               100
+Advanced     17–24  Basic rules (greater than, color       130
+                    scale, top/bottom)
+Expert       25–32  Full CF: formula rules, icon sets,     250
+                    data bars, duplicate detection,
+                    dynamic date formulas, multi-sheet

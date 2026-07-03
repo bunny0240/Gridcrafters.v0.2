@@ -1,0 +1,682 @@
+You are fixing and hardening an existing GridCrafters React + Supabase
+app. Apply every fix below in one pass. No new features. No regressions.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 1 — XP DOUBLE COUNTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: Replaying a completed challenge adds XP again each time.
+Minimum XP floor is 80% of base regardless of hints or retries.
+
+Fix in db.ts awardXP and completeChallenge:
+
+Before inserting xp_transactions, check if challenge was
+already completed:
+
+  const { data: existing } = await supabase
+    .from(progressTable)
+    .select('status, best_xp')
+    .eq('user_id', userId)
+    .eq(idColumn, challengeId)
+    .single()
+
+  const isReplay = existing?.status === 'completed'
+
+If isReplay:
+  Only award XP if newXP > existing.best_xp
+  Award delta only: amount = newXP - existing.best_xp
+  If newXP <= existing.best_xp: award 0, show "No new XP — best score
+  still your record" toast
+
+XP floor — enforce in xp.ts calculateFinalXP():
+  const floor = Math.round(challenge.baseXP * 0.8)
+  return Math.max(floor, Math.min(earned, cap))
+
+Update best_xp in progress table only if newXP > existing.best_xp.
+Stars can always improve regardless of XP.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 2 — VISIBILITY & FONT SIZE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: At 50% screen brightness, text and borders are invisible.
+Fonts are too small throughout.
+
+Update these CSS variables in :root — increase contrast across board:
+
+  --bg:      #0d0d0b   (darker base, more contrast)
+  --s1:      #1a1a17   (brighter surface)
+  --s2:      #232320   (brighter elevated)
+  --s3:      #2c2c28
+  --border:  #3d3d38   (was #2a2a26 — now visible at 50% brightness)
+  --border2: #4a4a44
+  --text:    #f0ede6   (near white, high contrast)
+  --text2:   #c4bfb4   (was #a8a49a — brighter)
+  --text3:   #8a857a   (was #5a5750 — brighter)
+  --text4:   #5a5650   (was #3a3834 — brighter)
+
+Font size updates — find and replace globally:
+
+  Sidebar nav items:       12.5px → 14px
+  Sidebar section labels:  9px   → 10.5px
+  Sidebar XP level text:   13px  → 14px
+  Sidebar XP sub text:     10px  → 11.5px
+  Sidebar streak text:     11px  → 12.5px
+  Topbar page title:       22px  → 24px
+  Topbar subtitle:         11px  → 13px
+  Dashboard stat numbers:  22px  → 26px
+  Dashboard stat labels:   10px  → 12px
+  Card titles:             16px  → 17px
+  Body/description text:   12px  → 13.5px
+  Micro labels/caps:       9.5px → 11px
+  Nav chips (soon/live):   9px   → 10px
+  Badge text:              10px  → 11.5px
+  Activity log text:       11px  → 13px
+  XP toast:                scale up by 15%
+  Key cap labels:          13px  → 15px (DM Mono)
+  Leaderboard rows:        11.5px → 13px
+
+Border visibility — increase border opacity on all cards:
+  Replace border: 1px solid var(--border) with
+  border: 1px solid var(--border) — already updated via variable
+  Also increase gradient border glow:
+    box-shadow: 0 0 0 1px rgba(139,92,246,0.25),
+                0 0 20px rgba(139,92,246,0.12)
+
+Resume card, module cards, stat cards — add subtle background
+differentiation so they lift off the page:
+  Stat cards: bg #1a1a17 → #1e1e1b
+  Module cards: bg #1a1a17 with border #3d3d38
+  Section dividers: color #4a4a44
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 3 — VISUAL CELL FEEDBACK IN ALL CHALLENGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: Shortcut effects don't visually update the Excel simulator
+during challenges. Ctrl+→ should visually move the active cell.
+
+In ExcelSimulator.tsx, ensure EVERY excelEffect has a working
+visual handler. Add missing handlers:
+
+Navigation effects (add these — they update activeCell and
+selectedCells, not cell style):
+
+  'jump-right-edge': () => {
+    const {row} = parseCell(activeCell)
+    const lastCol = findLastFilledCol(row)
+    setActiveCell(lastCol + row)
+    setSelectedCells(new Set([lastCol + row]))
+    highlightColHeader(lastCol)
+  }
+
+  'jump-left-edge': () => {
+    const {row} = parseCell(activeCell)
+    setActiveCell('A' + row)
+    setSelectedCells(new Set(['A' + row]))
+  }
+
+  'jump-to-end': () => {
+    setActiveCell('E6')
+    setSelectedCells(new Set(['E6']))
+    scrollToCell('E6')
+  }
+
+  'jump-to-a1': () => {
+    setActiveCell('A1')
+    setSelectedCells(new Set(['A1']))
+    scrollToCell('A1')
+  }
+
+  'select-column': () => {
+    const {col} = parseCell(activeCell)
+    const allInCol = new Set(
+      ['1','2','3','4','5','6'].map(r => col + r)
+    )
+    setSelectedCells(allInCol)
+    highlightColHeader(col)
+  }
+
+  'select-row': () => {
+    const {row} = parseCell(activeCell)
+    const allInRow = new Set(
+      COLS.map(c => c + row)
+    )
+    setSelectedCells(allInRow)
+    highlightRowNum(row)
+  }
+
+  'select-all': () => {
+    const all = new Set<string>()
+    COLS.forEach(c => ['1','2','3','4','5','6'].forEach(r => all.add(c+r)))
+    setSelectedCells(all)
+    setSelectAllActive(true)
+  }
+
+  'save-flash': () => {
+    setTitleUnsaved(false)
+    flashElement('simulator-title', 'green', 800)
+  }
+
+  'copy-marquee': () => {
+    setCopiedCells(new Set(selectedCells))
+    selectedCells.forEach(id =>
+      setGrid(prev => ({...prev, [id]: {...prev[id], copyMarquee: true}}))
+    )
+  }
+
+  'undo-revert': () => {
+    if (undoStack.length === 0) return
+    const prev = undoStack[undoStack.length - 1]
+    setGrid(prev.grid)
+    setUndoStack(s => s.slice(0,-1))
+    flashGrid('amber', 300)
+  }
+
+  'toggle-filter': () => {
+    setFilterVisible(v => !v)
+    // Add ▼ dropdown arrows to header row cells A1-E1
+  }
+
+  'show-formulas': () => {
+    setShowingFormulas(v => !v)
+    // Toggle: show formula strings vs computed values
+    // Auto-widen columns when showing formulas
+  }
+
+  'recalculate-flash': () => {
+    flashAllFormulaCells('green', 600)
+  }
+
+  'autosum': () => {
+    const col = parseCell(activeCell).col
+    const values = ['2','3','4','5'].map(r => grid[col+r]?.rawValue ?? '0')
+    const sum = values.reduce((a,b) => a + parseFloat(b), 0)
+    applyToCell(activeCell, {value: `=SUM()`, computed: String(sum), formula: true})
+    animateCountUp(activeCell, sum)
+  }
+
+  'fill-down': () => {
+    const sorted = [...selectedCells].sort()
+    const src = grid[sorted[0]]
+    sorted.slice(1).forEach((id, i) => {
+      setTimeout(() => {
+        setGrid(prev => ({...prev, [id]: {...prev[id], ...src}}))
+        flashCell(id, 'purple', 200)
+      }, i * 80) // ripple effect down
+    })
+  }
+
+  'fill-right': () => {
+    const sorted = [...selectedCells].sort()
+    const src = grid[sorted[0]]
+    sorted.slice(1).forEach((id, i) => {
+      setTimeout(() => {
+        setGrid(prev => ({...prev, [id]: {...prev[id], ...src}}))
+        flashCell(id, 'purple', 200)
+      }, i * 80) // ripple effect right
+    })
+  }
+
+Push state to undoStack before every applyEffect call:
+  setUndoStack(s => [...s.slice(-19), {grid: {...grid}}])
+
+Add flashCell helper:
+  function flashCell(id: string, color: 'green'|'red'|'purple'|'amber', ms: number) {
+    setFlashingCells(prev => new Set([...prev, id]))
+    setTimeout(() => setFlashingCells(prev => {
+      const next = new Set(prev); next.delete(id); return next
+    }), ms)
+  }
+
+CSS for flash states (inside white simulator area):
+  .cell-flash-green  { background: rgba(34,197,94,0.2) !important; transition: background 0.15s }
+  .cell-flash-purple { background: rgba(139,92,246,0.2) !important; transition: background 0.15s }
+  .cell-flash-amber  { background: rgba(245,158,11,0.15) !important; transition: background 0.15s }
+  .cell-flash-red    { background: rgba(239,68,68,0.2) !important; transition: background 0.15s }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 4 — UNIVERSAL SHORTCUT APPLICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: Basic shortcuts like Ctrl+A, Shift+Space, Ctrl+C don't
+work during challenges because the detection hook only looks for
+the challenge's expected shortcut.
+
+Fix: ExcelSimulator must ALWAYS handle its own universal shortcuts
+independently of the challenge detection hook.
+
+Add a second, always-on listener inside ExcelSimulator that is
+SEPARATE from the challenge validation listener:
+
+  useEffect(() => {
+    const universalHandler = (e: KeyboardEvent) => {
+      if (!simulatorFocused) return
+
+      // These always work inside the simulator, challenge or not
+      const key = normalizeKey(e)
+
+      if (e.ctrlKey && !e.shiftKey && !e.altKey) {
+        switch(key) {
+          case 'A': e.preventDefault(); applyEffect('select-all'); break
+          case 'C': e.preventDefault(); applyEffect('copy-marquee'); break
+          case 'Z': e.preventDefault(); applyEffect('undo-revert'); break
+          case 'Y': e.preventDefault(); applyEffect('redo'); break
+          case 'B': e.preventDefault(); applyEffect('bold'); break
+          case 'I': e.preventDefault(); applyEffect('italic'); break
+          case 'U': e.preventDefault(); applyEffect('underline'); break
+          case 'D': e.preventDefault(); applyEffect('fill-down'); break
+          case 'R': e.preventDefault(); applyEffect('fill-right'); break
+          case 'Home': e.preventDefault(); applyEffect('jump-to-a1'); break
+          case 'End':  e.preventDefault(); applyEffect('jump-to-end'); break
+          case '→': e.preventDefault(); applyEffect('jump-right-edge'); break
+          case '←': e.preventDefault(); applyEffect('jump-left-edge'); break
+          case '↑': e.preventDefault(); applyEffect('jump-up-edge'); break
+          case '↓': e.preventDefault(); applyEffect('jump-down-edge'); break
+          case '`': e.preventDefault(); applyEffect('show-formulas'); break
+        }
+      }
+
+      if (e.shiftKey && !e.ctrlKey && !e.altKey && key === 'Space') {
+        e.preventDefault(); applyEffect('select-row')
+      }
+      if (e.ctrlKey && !e.shiftKey && !e.altKey && key === 'Space') {
+        e.preventDefault(); applyEffect('select-column')
+      }
+      if (key === 'Delete' || key === 'Backspace') {
+        // Only if not in challenge phase 2 to avoid conflict
+        if (!challengeActive) applyEffect('delete-content')
+      }
+      if (key === 'F2') { e.preventDefault(); applyEffect('edit-cell') }
+      if (key === 'Esc') { applyEffect('close-edit') }
+    }
+
+    document.addEventListener('keydown', universalHandler, { capture: true })
+    return () => document.removeEventListener('keydown', universalHandler, { capture: true })
+  }, [simulatorFocused, selectedCells, grid, challengeActive])
+
+Arrow key navigation (always on in simulator):
+  ArrowRight: move activeCell right one column
+  ArrowLeft:  move activeCell left one column
+  ArrowUp:    move activeCell up one row
+  ArrowDown:  move activeCell down one row
+  Shift+Arrow: extend selection in that direction
+  Each arrow movement flashes the new active cell briefly
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 5 — REMOVE ALT+F4
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In shortcuts.ts: delete the entry with id='ctrl-f4' and
+keys=['Ctrl','F4'] entirely. Remove from all levels.
+
+In useShortcutDetection.ts and useMultiShortcutDetection.ts,
+add to the handler's block list:
+
+  if (e.altKey && e.key === 'F4') {
+    e.preventDefault()
+    e.stopPropagation()
+    e.stopImmediatePropagation()
+    return // never process Alt+F4
+  }
+
+Add this check BEFORE any other processing in both hooks.
+This must be the first thing checked in every keydown handler.
+
+Also block these dangerous browser shortcuts:
+  Alt+F4, Ctrl+W (close tab), Ctrl+T (new tab), Ctrl+N (new window)
+  Block them all with e.preventDefault() inside capture listener.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 6 — FORMATTING KINGS STUDY MODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Make Formatting Kings Study tab match Shortcut Masters Study tab exactly.
+
+Study tab should show for each shortcut in activeShortcuts of the level:
+
+  ┌────────────────────────────────────────┐
+  │  [KeyCap row]   Ctrl + Shift + $       │
+  │                                        │
+  │  WHAT IT DOES:                         │
+  │  Formats selected cells as currency    │
+  │  ($124,000 style)                      │
+  │                                        │
+  │  WHEN TO USE:                          │
+  │  Any financial data — revenue, salary  │
+  │                                        │
+  │  LONG METHOD:                          │
+  │  Home → Number → $ dropdown            │
+  │                                        │
+  │  PRO TIP:                              │
+  │  Applies system currency. For others   │
+  │  use Ctrl+1 → Accounting tab           │
+  │                                        │
+  │  BEFORE           AFTER                │
+  │  [mini grid]  →   [mini grid styled]   │
+  │  (loops animation every 2s)            │
+  └────────────────────────────────────────┘
+
+Replicate ShortcutStudyCard component as FormattingStudyCard.
+Same layout, same KeyCap display (chord uses + , sequence uses →),
+same before/after mini grid loop.
+
+Add what/when/longMethod/tip/memoryAnchor fields to every entry
+in the activeShortcuts arrays in formattingChallenges.ts:
+
+Example additions:
+  ctrl-b:       { what: 'Makes text bold', when: 'Headers and totals',
+                  longMethod: 'Home → Font → B', tip: 'Bold all header rows',
+                  memoryAnchor: 'B is for Bold' }
+  ctrl-shift-$: { what: 'Currency format $#,##0', when: 'All financial values',
+                  longMethod: 'Home → Number → $',
+                  tip: 'Ctrl+1 for non-USD currencies',
+                  memoryAnchor: '$ key in the shortcut = $ format' }
+  alt-h-m-c:    { what: 'Merges cells and centers content',
+                  when: 'Report titles spanning columns',
+                  longMethod: 'Home → Alignment → Merge & Center',
+                  tip: 'Never merge inside data tables',
+                  memoryAnchor: 'H=Home M=Merge C=Center — tap in order',
+                  howItWorks: 'SEQUENCE — press and release each key one at a time' }
+
+Show sequence callout for sequence shortcuts:
+  Yellow info box: "⚡ Sequence shortcut — press Alt, then H, then M, then C
+  (one key at a time, not all at once)"
+  bg rgba(245,158,11,0.08), border rgba(245,158,11,0.2), radius 6px
+
+"Mark as Studied" button at bottom of each level's study list.
+Writes status='studied' to formatting_progress for all challenges
+in that level. Unlocks Challenge tab.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 7 — REMOVE SETTINGS FROM SIDEBAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Sidebar.tsx: delete the Settings nav item entirely.
+Delete any /settings route from App.tsx router.
+Delete Settings.tsx page if it exists.
+Do not replace it with anything.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 8 — BACKEND HARDENING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In db.ts — wrap every Supabase call in try/catch with typed errors:
+
+  export async function awardXP(params) {
+    try {
+      const { error } = await supabase.from('xp_transactions').insert({...})
+      if (error) throw error
+    } catch (err) {
+      console.error('[awardXP]', err)
+      // Do not rethrow — XP failure should not crash the app
+    }
+  }
+
+Add retry logic for network failures (3 retries, exponential backoff):
+
+  async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+    for (let i = 0; i < retries; i++) {
+      try { return await fn() }
+      catch (err) {
+        if (i === retries - 1) throw err
+        await new Promise(r => setTimeout(r, 300 * Math.pow(2, i)))
+      }
+    }
+    throw new Error('Max retries exceeded')
+  }
+
+Optimistic updates: update local state immediately on every user action,
+then sync to Supabase in background. If Supabase fails, roll back local
+state and show error toast.
+
+Session handling in useAuth.ts:
+  On 401 errors from any Supabase call: call supabase.auth.refreshSession()
+  If refresh fails: redirect to / (sign in page)
+
+In supabase.ts add global auth state listener:
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') { window.location.href = '/' }
+    if (event === 'TOKEN_REFRESHED') { console.log('token refreshed') }
+  })
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 9 — SUPABASE ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run these in Supabase SQL Editor to fix common issues:
+
+-- Fix: profiles not created on signup if trigger fails
+-- Re-create trigger with better error handling
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer as $$
+begin
+  insert into public.profiles (id, username, full_name, email)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'username',
+             regexp_replace(split_part(new.email,'@',1),'[^a-zA-Z0-9]','','g')),
+    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email,'@',1)),
+    new.email
+  )
+  on conflict (id) do update set
+    email = excluded.email,
+    updated_at = now();
+  return new;
+exception when others then
+  raise warning 'handle_new_user failed: %', sqlerrm;
+  return new;
+end;
+$$;
+
+-- Fix: RLS blocking leaderboard reads
+drop policy if exists "profiles_read" on public.profiles;
+create policy "profiles_read_authenticated"
+  on public.profiles for select
+  using (auth.role() = 'authenticated');
+
+-- Fix: XP double counting at DB level — add unique constraint
+alter table public.xp_transactions
+  add column if not exists idempotency_key text;
+create unique index if not exists xp_idempotency
+  on public.xp_transactions(user_id, idempotency_key)
+  where idempotency_key is not null;
+
+-- Fix: last_challenge upsert conflict
+alter table public.last_challenge
+  drop constraint if exists last_challenge_pkey;
+alter table public.last_challenge
+  add primary key (user_id);
+
+-- Fix: leaderboard view permissions
+grant select on public.leaderboard to authenticated;
+
+-- Fix: missing updated_at triggers
+create or replace function update_updated_at()
+returns trigger language plpgsql as $$
+begin new.updated_at = now(); return new; end;
+$$;
+
+drop trigger if exists shortcut_progress_updated_at on public.shortcut_progress;
+create trigger shortcut_progress_updated_at
+  before update on public.shortcut_progress
+  for each row execute procedure update_updated_at();
+
+drop trigger if exists formatting_progress_updated_at on public.formatting_progress;
+create trigger formatting_progress_updated_at
+  before update on public.formatting_progress
+  for each row execute procedure update_updated_at();
+
+-- Verify RLS is working (run this as a test):
+-- select * from public.profiles limit 5; -- should work
+-- select * from public.xp_transactions;  -- should only show own rows
+
+In lib/supabase.ts add idempotency key generation for XP awards:
+  export function generateIdempotencyKey(
+    userId: string, challengeId: string, action: string
+  ): string {
+    return `${userId}_${challengeId}_${action}_${Date.now()}`
+  }
+
+Pass idempotency_key in every xp_transactions insert to prevent
+duplicate DB rows on network retry.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 10 — PRE-DEPLOYMENT CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add a /health-check route (dev only, remove before prod):
+  Shows a status card with:
+  - Supabase connection: connected/failed (ping profiles table)
+  - Auth: signed in as [email] / not signed in
+  - DB tables: list each table with row count
+  - ENV vars: VITE_SUPABASE_URL set? VITE_SUPABASE_ANON_KEY set?
+  - RLS: test read from profiles (should succeed)
+  - XP trigger: test xp_transactions insert (check total_xp updates)
+  - Streak function: test RPC call
+  - Realtime: test channel subscription
+
+Generate checklist output to console on app start in development:
+  if (import.meta.env.DEV) {
+    console.group('GridCrafters Health Check')
+    // ping supabase
+    // verify env vars exist
+    // log any missing tables
+    console.groupEnd()
+  }
+
+Build verification steps (run before deploy):
+  1. npm run build — must complete with 0 TypeScript errors
+  2. npm run preview — test production build locally on port 4173
+  3. Open at 50% brightness — verify all text is readable
+  4. Test sign up → verify profiles row created in Supabase
+  5. Complete 1 shortcut challenge → verify:
+       shortcut_progress row created
+       xp_transactions row created
+       profiles.total_xp updated
+       activity_log row created
+       last_challenge row created/updated
+  6. Complete same challenge again → verify XP not doubled
+  7. Complete all challenges in Rookie level → verify:
+       level_completion row created
+       bonus XP awarded (+100)
+  8. Test Leaderboard realtime (open in 2 tabs)
+  9. Sign out → verify redirect to /
+  10. Sign in again → verify streak updated
+
+Deployment steps (give these to the user BEFORE deploying):
+
+STEP 1 — Final Supabase config:
+  Dashboard → Auth → URL Configuration
+  Site URL: https://your-app.vercel.app
+  Redirect URLs: https://your-app.vercel.app/**
+  Turn ON email confirmation for production
+
+STEP 2 — Run production SQL fixes (Fix 9 above) in Supabase
+
+STEP 3 — Build check:
+  npm run build (fix any errors before continuing)
+
+STEP 4 — Push to GitHub:
+  git add .
+  git commit -m "pre-deploy: all fixes applied"
+  git push origin main
+
+STEP 5 — Vercel:
+  vercel.com → New Project → Import GitHub repo
+  Add env vars:
+    VITE_SUPABASE_URL = your url
+    VITE_SUPABASE_ANON_KEY = your anon key
+  Deploy
+
+STEP 6 — Post-deploy smoke test:
+  Open deployed URL
+  Sign up as a new user
+  Complete 1 challenge
+  Check Supabase Table Editor → profiles row exists with XP > 0
+  Check leaderboard loads
+  Sign out and sign back in
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 11 — SUPABASE ENV & CLIENT ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In src/lib/supabase.ts replace current client with:
+
+  import { createClient } from '@supabase/supabase-js'
+
+  const url = import.meta.env.VITE_SUPABASE_URL
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+  if (!url || !key) {
+    throw new Error(
+      'Missing Supabase env vars. ' +
+      'Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env.local'
+    )
+  }
+
+  export const supabase = createClient(url, key, {
+    auth: {
+      persistSession:    true,
+      autoRefreshToken:  true,
+      detectSessionInUrl:true,
+      storageKey:        'gridcrafters-auth',
+    },
+    realtime: {
+      params: { eventsPerSecond: 2 }
+    },
+    global: {
+      headers: { 'x-app-name': 'gridcrafters' }
+    }
+  })
+
+  // Test connection on init (dev only)
+  if (import.meta.env.DEV) {
+    supabase.from('profiles').select('count').limit(1)
+      .then(({ error }) => {
+        if (error) console.error('Supabase connection failed:', error.message)
+        else console.log('Supabase connected ✓')
+      })
+  }
+
+Fix common Supabase query pattern errors:
+
+Pattern: always destructure both data AND error:
+  WRONG:  const data = await supabase.from('profiles').select('*')
+  RIGHT:  const { data, error } = await supabase.from('profiles')
+            .select('*').eq('id', userId).single()
+          if (error) { console.error(error); return null }
+
+Pattern: upsert with correct onConflict:
+  shortcut_progress:   onConflict: 'user_id,shortcut_id'
+  formatting_progress: onConflict: 'user_id,challenge_id'
+  last_challenge:      onConflict: 'user_id'
+  level_completion:    onConflict: 'user_id,module,level_name'
+
+Pattern: realtime subscription cleanup:
+  const channel = supabase.channel('leaderboard')
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'profiles'
+    }, handleChange)
+    .subscribe()
+  return () => { supabase.removeChannel(channel) }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RULES — NEVER VIOLATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1.  XP only awarded as delta over best_xp on replay — never full amount again
+2.  XP floor is always 80% of baseXP minimum
+3.  Alt+F4 blocked before any other keydown processing
+4.  { capture: true } on ALL keydown listeners
+5.  selectedCells is always Set<string>
+6.  Universal shortcuts work inside simulator on ALL pages
+7.  Formatting Kings mouse clicks on ribbon = disabled (pointer-events none)
+8.  Formatting Kings study cards identical structure to Shortcut Masters
+9.  Settings nav item completely removed
+10. All Supabase calls wrapped in try/catch
+11. Idempotency key on every xp_transactions insert
+12. Health check route exists in dev, removed in prod build
+13. Build must pass tsc --noEmit with 0 errors before deploy
+14. Text readable at 50% screen brightness — verify visually
+15. No localStorage for authenticated users — Supabase is source of truth

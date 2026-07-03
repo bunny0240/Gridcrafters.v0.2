@@ -1,0 +1,268 @@
+Update the typography system across the entire GridCrafters app.
+
+---
+
+## FONT IMPORTS
+
+Add this to the top of your global CSS file (index.css or globals.css):
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+---
+
+## CSS VARIABLES
+
+Replace all existing font-family variables with:
+
+:root {
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'DM Mono', 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+---
+
+## GLOBAL BASE
+
+Set on body and all elements:
+
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+* {
+  font-family: inherit;
+}
+
+---
+
+## TYPE SCALE — apply these exact values everywhere
+
+/* Page titles (Dashboard, Profile, Leaderboard) */
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  color: #e8e6e0;
+}
+
+/* Card and module titles */
+.card-title, .module-title, .challenge-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  color: #e8e6e0;
+}
+
+/* Section headings (Modules, Recent Activity, Leaderboard) */
+.section-heading {
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: #a8a49a;
+}
+
+/* Navigation items, UI labels */
+.nav-item, .ui-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* Body / description text */
+.body-text, .description {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #a8a49a;
+}
+
+/* Uppercase micro-labels (section separators, eyebrows) */
+.label-caps {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #5a5750;
+}
+
+/* Chips, tags, badges */
+.chip, .tag, .badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* Sidebar nav items */
+.sidebar-item {
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.sidebar-item.active {
+  font-weight: 500;
+}
+
+/* Buttons */
+.btn {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+}
+
+---
+
+## MONO — apply DM Mono to all data/numbers
+
+/* XP numbers, scores, stats */
+.xp-value, .stat-number, .score {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+/* Leaderboard XP column */
+.lb-xp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Timestamps, shortcut keys, percentages, progress labels */
+.timestamp, .progress-pct, .shortcut-key-text {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 400;
+}
+
+/* Key caps in shortcut challenges */
+.key-cap {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Formula bar, cell content in Excel simulator */
+.formula-bar-content, .excel-cell {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* XP breakdown numbers in results screen */
+.xp-breakdown {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+---
+
+## BRAND NAME — GridCrafters logo text
+
+/* Sidebar logo wordmark */
+.brand-name {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: #e8e6e0;
+}
+
+.brand-name .accent {
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.brand-sub {
+  font-family: var(--font-sans);
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  color: #5a5750;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+---
+
+## RULES — do not violate these
+
+1. NEVER use font-weight 900. Max is 700 for display, 600 for headings,
+   500 for emphasis, 400 for body.
+
+2. NEVER use letter-spacing tighter than -0.5px or wider than 1.2px
+   (only on uppercase micro-labels).
+
+3. NEVER apply Geist to spreadsheet cells, formula bars, shortcut key
+   caps, or any data numbers — those always use DM Mono.
+
+4. NEVER mix font families within the same UI component.
+   One component = one font (either Geist or DM Mono, never both).
+
+5. Body text line-height is always 1.6. Heading line-height is always 1.1–1.2.
+
+6. Uppercase labels (section separators, eyebrows) use Geist 600 at
+   9.5px with 1px letter-spacing. Do not exceed 10px for these labels.
+
+7. The brand name in the sidebar uses font-weight 700 with
+   letter-spacing -0.4px. The word "Crafters" gets the purple→blue
+   gradient. "Grid" stays plain white #e8e6e0.
+
+8. Remove all uses of Playfair Display, DM Sans, system-ui stacks,
+   Nunito, or any other font previously used. Geist replaces everything
+   except cells and data which use DM Mono.
+
+9. font-feature-settings: 'cv02','cv03','cv04','cv11' must be set on
+   body — these activate Geist's alternate glyphs that remove the
+   childish circular letter shapes.
+
+10. -webkit-font-smoothing: antialiased must be set on body.
+    Without it Geist looks slightly blurry on macOS.
+
+---
+
+## TAILWIND CONFIG (if using Tailwind)
+
+In tailwind.config.js, extend fontFamily:
+
+module.exports = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['DM Mono', 'JetBrains Mono', 'monospace'],
+      },
+    },
+  },
+}
+
+Then in index.css:
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+}
+
+---
+
+## VERIFY AFTER APPLYING
+
+Check these 5 things after the change:
+
+1. Sidebar nav items: Geist 400 inactive, Geist 500 active
+2. Dashboard title "Dashboard": Geist 700, 22px, -0.5px tracking
+3. XP number in stat card: DM Mono 500, 20px, gradient color
+4. Key caps in challenge screen: DM Mono 500, 13px
+5. Uppercase section labels: Geist 600, 9.5px, 1px tracking, uppercase

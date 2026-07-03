@@ -1,0 +1,447 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:       #111110;
+  --s1:       #161614;
+  --s2:       #1c1c1a;
+  --s3:       #242420;
+  --border:   #2a2a26;
+  --border2:  #333330;
+  --purple:   #8b5cf6;
+  --purple2:  #a78bfa;
+  --blue:     #3b82f6;
+  --blue2:    #60a5fa;
+  --green:    #22c55e;
+  --amber:    #f59e0b;
+  --red:      #ef4444;
+  --text:     #e8e6e0;
+  --text2:    #a8a49a;
+  --text3:    #5a5750;
+  --text4:    #3a3834;
+  --grad:     linear-gradient(135deg,#8b5cf6,#3b82f6);
+  --serif:    'Playfair Display', Georgia, serif;
+  --sans:     'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono:     'DM Mono', 'JetBrains Mono', monospace;
+}
+
+body{background:var(--bg);font-family:var(--sans);color:var(--text);font-size:13px;line-height:1.6}
+
+.full-ui{display:flex;border-radius:12px;overflow:hidden;border:1px solid var(--border);height:800px}
+
+/* SIDEBAR */
+.sb{width:228px;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sb-top{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-text{display:flex;flex-direction:column}
+.brand-name{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--text);letter-spacing:-0.2px;line-height:1.1}
+.brand-name em{font-style:normal;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand-by{font-family:var(--sans);font-size:9.5px;color:var(--text3);font-weight:400;letter-spacing:0.6px;margin-top:3px;text-transform:uppercase}
+
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 16px 4px;font-family:var(--sans);font-size:9px;color:var(--text4);letter-spacing:1.2px;font-weight:600;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 16px;color:var(--text3);cursor:pointer;border-left:2px solid transparent;font-size:12.5px;font-weight:400;margin:1px 0;font-family:var(--sans)}
+.sb-item:hover{color:var(--text2);background:var(--s2)}
+.sb-item.act{color:var(--purple2);border-left-color:var(--purple);background:linear-gradient(90deg,rgba(139,92,246,0.1),transparent);font-weight:500}
+.sb-item.act2{color:var(--blue2);border-left-color:var(--blue);background:linear-gradient(90deg,rgba(59,130,246,0.08),transparent);font-weight:500}
+.sb-ic{font-size:14px;width:16px;flex-shrink:0;text-align:center;color:inherit}
+.sb-chip{margin-left:auto;font-size:9px;font-weight:500;padding:2px 6px;border-radius:4px;background:var(--s3);color:var(--text4);border:1px solid var(--border);font-family:var(--mono)}
+.sb-chip.live{background:rgba(139,92,246,0.08);color:var(--purple);border-color:rgba(139,92,246,0.2)}
+
+.sb-foot{padding:10px}
+.xp-box{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px 13px}
+.xp-row1{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.xp-level{font-family:var(--serif);font-size:13px;font-weight:600;color:var(--text);line-height:1}
+.xp-pts{font-family:var(--mono);font-size:11px;font-weight:500;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.xp-sub{font-family:var(--sans);font-size:10px;color:var(--text3);margin-bottom:8px}
+.xp-bar{height:3px;background:var(--s3);border-radius:99px;overflow:hidden;margin-bottom:5px}
+.xp-fill{height:100%;width:62%;border-radius:99px;background:var(--grad)}
+.xp-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--text4);font-family:var(--mono)}
+.xp-streak{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--amber);font-weight:500;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--sans)}
+
+/* MAIN */
+.main{flex:1;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+
+.topbar{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pg-title{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--text);letter-spacing:-0.3px;line-height:1}
+.pg-sub{font-family:var(--sans);font-size:11px;color:var(--text3);margin-top:3px;font-weight:400}
+.tb-right{display:flex;align-items:center;gap:10px}
+.streak-pill{display:flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--border);border-radius:99px;padding:5px 11px;font-size:11px;color:var(--amber);font-weight:600;font-family:var(--sans)}
+.av{width:32px;height:32px;border-radius:99px;background:linear-gradient(135deg,#3b0764,#1e3a8a);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:12px;font-weight:700;color:white;border:1.5px solid var(--border2);letter-spacing:0}
+
+.content{flex:1;padding:18px 20px;overflow:auto}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.stat{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.stat-n{font-family:var(--serif);font-size:22px;font-weight:700;line-height:1;margin-bottom:3px}
+.stat-l{font-family:var(--sans);font-size:10px;color:var(--text3);font-weight:400;text-transform:uppercase;letter-spacing:0.5px}
+
+/* RESUME CARD */
+.resume-card{border-radius:10px;overflow:hidden;margin-bottom:18px;background:var(--s1);border:1px solid transparent;background:linear-gradient(var(--s1),var(--s1)) padding-box,var(--grad) border-box}
+.rc-top{padding:14px 16px 0;display:flex;align-items:flex-start;gap:13px}
+.rc-icon{width:40px;height:40px;border-radius:8px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.rc-body{flex:1;min-width:0}
+.rc-eyebrow{font-family:var(--sans);font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:500;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.rc-dot{width:5px;height:5px;border-radius:99px;background:var(--purple);flex-shrink:0}
+.rc-title{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:4px;letter-spacing:-0.2px}
+.rc-detail{font-family:var(--sans);font-size:11px;color:var(--text3);line-height:1.5}
+.rc-detail .hi{color:var(--purple2);font-weight:500}
+.rc-btn{background:var(--grad);padding:8px 18px;border-radius:7px;font-family:var(--sans);font-size:12px;font-weight:600;color:white;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;border:none;letter-spacing:0.1px}
+.rc-mid{padding:10px 16px 0;display:flex;align-items:center;gap:6px;font-family:var(--sans);font-size:10px;color:var(--text4)}
+.rc-crumb{color:var(--text3)}
+.rc-crumb.cur{color:var(--purple2);font-weight:500}
+.rc-sep{color:var(--text4)}
+.rc-bot{padding:10px 16px 13px;display:flex;align-items:center;gap:10px}
+.rc-prog-bg{flex:1;height:3px;background:var(--s3);border-radius:99px;overflow:hidden}
+.rc-prog-fill{height:100%;width:37.5%;border-radius:99px;background:var(--grad)}
+.rc-prog-pct{font-family:var(--mono);font-size:10px;color:var(--purple);font-weight:500;white-space:nowrap}
+.rc-prog-label{font-family:var(--mono);font-size:10px;color:var(--text4);white-space:nowrap}
+.rc-divider{width:1px;height:10px;background:var(--border);flex-shrink:0}
+.rc-time{font-family:var(--sans);font-size:10px;color:var(--text4);white-space:nowrap}
+
+/* SECTION HEADING */
+.sec-hd{font-family:var(--serif);font-size:14px;font-weight:600;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:10px;letter-spacing:-0.1px}
+.sec-hd::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* MODULE CARDS */
+.mod-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.mc{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:14px;cursor:pointer}
+.mc.gp{background:linear-gradient(var(--s1),var(--s1)) padding-box,linear-gradient(135deg,#8b5cf6,#3b82f6) border-box;border:1px solid transparent}
+.mc.gb{background:linear-gradient(var(--s1),var(--s1)) padding-box,linear-gradient(135deg,#3b82f6,#8b5cf6) border-box;border:1px solid transparent}
+.mc-ic{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:14px}
+.mc-title{font-family:var(--serif);font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;letter-spacing:-0.1px}
+.mc-desc{font-family:var(--sans);font-size:10.5px;color:var(--text3);margin-bottom:8px;font-weight:400}
+.mc-tags{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap}
+.tag{font-family:var(--sans);font-size:9px;font-weight:500;padding:2px 7px;border-radius:4px}
+.tg{background:rgba(34,197,94,0.07);color:#4ade80;border:1px solid rgba(34,197,94,0.18)}
+.tp{background:rgba(139,92,246,0.08);color:var(--purple2);border:1px solid rgba(139,92,246,0.18)}
+.tb{background:rgba(59,130,246,0.08);color:var(--blue2);border:1px solid rgba(59,130,246,0.18)}
+.td{background:var(--s2);color:var(--text4);border:1px solid var(--border)}
+.mc-prog{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--text4);margin-bottom:4px}
+.mc-bar-bg{height:3px;background:var(--s3);border-radius:99px;overflow:hidden}
+.mc-bar{height:100%;border-radius:99px}
+
+/* ACTIVITY */
+.act-list{background:var(--s1);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:18px}
+.act-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);font-size:11.5px}
+.act-row:last-child{border:none}
+.act-dot{width:6px;height:6px;border-radius:99px;flex-shrink:0}
+.act-txt{flex:1;color:var(--text2);font-family:var(--sans);font-weight:400}
+.act-xp{font-family:var(--mono);font-weight:500;font-size:11px}
+.act-t{color:var(--text4);font-family:var(--mono);font-size:10px}
+
+/* BADGES */
+.badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px}
+.badge{padding:4px 10px;border-radius:5px;font-size:10px;font-weight:500;display:flex;align-items:center;gap:5px;font-family:var(--sans)}
+.bdg-p{background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);color:var(--purple2)}
+.bdg-g{background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.18);color:#4ade80}
+.bdg-gold{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#fbbf24}
+.bdg-dim{background:var(--s2);border:1px solid var(--border);color:var(--text4)}
+
+/* LEADERBOARD */
+.lb-list{background:var(--s1);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.lb-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border)}
+.lb-row:last-child{border:none}
+.lb-row.you{background:linear-gradient(90deg,rgba(139,92,246,0.06),transparent);border-left:2px solid var(--purple)}
+.lb-rank{width:18px;font-family:var(--mono);font-weight:500;color:var(--text4);font-size:11px}
+.lb-rank.g{color:var(--amber)}
+.lb-rank.s{color:#94a3b8}
+.lb-rank.b{color:#b45309}
+.lb-av{width:27px;height:27px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:10px;font-weight:700;flex-shrink:0}
+.lb-name{flex:1;color:var(--text2);font-family:var(--sans);font-size:12px;font-weight:400}
+.lb-xp{font-family:var(--mono);font-weight:500;font-size:11px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+</style>
+
+<h2 class="sr-only">GridCrafters dark UI with Claude-inspired serif and DM Sans typography system</h2>
+
+<div class="full-ui">
+
+  <!-- SIDEBAR -->
+  <div class="sb">
+    <div class="sb-top">
+      <div class="brand">
+        <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#8b5cf6"/>
+              <stop offset="100%" stop-color="#3b82f6"/>
+            </linearGradient>
+          </defs>
+          <rect width="40" height="40" rx="9" fill="#161614" stroke="#2a2a26" stroke-width="1"/>
+          <rect x="5" y="5" width="13" height="13" rx="2.5" fill="url(#lg)"/>
+          <rect x="22" y="5" width="13" height="13" rx="2.5" fill="url(#lg)" opacity="0.4"/>
+          <rect x="5" y="22" width="13" height="13" rx="2.5" fill="url(#lg)" opacity="0.4"/>
+          <rect x="22" y="22" width="13" height="13" rx="2.5" fill="url(#lg)"/>
+          <rect x="17.5" y="5" width="5" height="30" fill="#161614"/>
+          <rect x="5" y="17.5" width="30" height="5" fill="#161614"/>
+          <rect x="18.5" y="18.5" width="3" height="3" rx="0.5" fill="url(#lg)"/>
+        </svg>
+        <div class="brand-text">
+          <div class="brand-name">Grid<em>Crafters</em></div>
+          <div class="brand-by">Made by Hyatt</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-nav">
+      <div class="sb-sec">Learn</div>
+      <div class="sb-item act">
+        <i class="ti ti-keyboard sb-ic" aria-hidden="true"></i>
+        Shortcut Masters
+      </div>
+      <div class="sb-item act2">
+        <i class="ti ti-brush sb-ic" aria-hidden="true"></i>
+        Formatting Kings
+      </div>
+      <div class="sb-item">
+        <i class="ti ti-chart-bar sb-ic" aria-hidden="true"></i>
+        Dashboard Craft
+        <span class="sb-chip">soon</span>
+      </div>
+      <div class="sb-item">
+        <i class="ti ti-search sb-ic" aria-hidden="true"></i>
+        Real Analysts
+        <span class="sb-chip">soon</span>
+      </div>
+      <div class="sb-sec" style="margin-top:8px">Community</div>
+      <div class="sb-item">
+        <i class="ti ti-trophy sb-ic" aria-hidden="true"></i>
+        Leaderboard
+        <span class="sb-chip live">live</span>
+      </div>
+      <div class="sb-item">
+        <i class="ti ti-user sb-ic" aria-hidden="true"></i>
+        Profile
+      </div>
+      <div class="sb-item">
+        <i class="ti ti-settings sb-ic" aria-hidden="true"></i>
+        Settings
+      </div>
+    </div>
+
+    <div class="sb-foot">
+      <div class="xp-box">
+        <div class="xp-row1">
+          <div class="xp-level">Level 3</div>
+          <div class="xp-pts">1,240 XP</div>
+        </div>
+        <div class="xp-sub">Analyst · 62% to Level 4</div>
+        <div class="xp-bar"><div class="xp-fill"></div></div>
+        <div class="xp-meta"><span>760 XP remaining</span><span>62%</span></div>
+        <div class="xp-streak">
+          <i class="ti ti-flame" aria-hidden="true"></i>
+          7-day streak active
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="pg-title">Dashboard</div>
+        <div class="pg-sub">Welcome back, Hyatt — pick up where you left off</div>
+      </div>
+      <div class="tb-right">
+        <div class="streak-pill">
+          <i class="ti ti-flame" aria-hidden="true"></i> 7
+        </div>
+        <div style="width:1px;height:16px;background:var(--border)"></div>
+        <div class="av">HY</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-n" style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">1,240</div>
+          <div class="stat-l">Total XP</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n" style="color:var(--amber)">7</div>
+          <div class="stat-l">Day streak</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n" style="color:var(--green)">2</div>
+          <div class="stat-l">Badges earned</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n" style="background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">#4</div>
+          <div class="stat-l">Leaderboard rank</div>
+        </div>
+      </div>
+
+      <!-- RESUME CARD -->
+      <div class="resume-card">
+        <div class="rc-top">
+          <div class="rc-icon">
+            <i class="ti ti-brush" style="color:var(--purple);font-size:18px" aria-hidden="true"></i>
+          </div>
+          <div class="rc-body">
+            <div class="rc-eyebrow"><div class="rc-dot"></div>Resume last challenge</div>
+            <div class="rc-title">Task 9 — Center the Header Row</div>
+            <div class="rc-detail">
+              Formatting Kings &nbsp;·&nbsp; Intermediate &nbsp;·&nbsp;
+              <span class="hi">+65 XP</span> &nbsp;·&nbsp;
+              stopped at step 1 of 2
+            </div>
+          </div>
+          <button class="rc-btn">
+            <i class="ti ti-player-play" style="font-size:12px" aria-hidden="true"></i>
+            Resume
+          </button>
+        </div>
+        <div class="rc-mid">
+          <span class="rc-crumb">Formatting Kings</span>
+          <span class="rc-sep">/</span>
+          <span class="rc-crumb">Intermediate</span>
+          <span class="rc-sep">/</span>
+          <span class="rc-crumb cur">Task 9 — Center the Header Row</span>
+        </div>
+        <div class="rc-bot">
+          <div class="rc-prog-label">3 / 8 done</div>
+          <div class="rc-prog-bg"><div class="rc-prog-fill"></div></div>
+          <div class="rc-prog-pct">37.5%</div>
+          <div class="rc-divider"></div>
+          <div class="rc-time">Last session 2h ago</div>
+        </div>
+      </div>
+
+      <div class="sec-hd">Modules</div>
+
+      <div class="mod-grid">
+        <div class="mc gp">
+          <div class="mc-ic" style="background:rgba(139,92,246,0.1)">
+            <i class="ti ti-keyboard" style="color:var(--purple);font-size:15px" aria-hidden="true"></i>
+          </div>
+          <div class="mc-title">Shortcut Masters</div>
+          <div class="mc-desc">18 of 40 shortcuts · Intermediate active</div>
+          <div class="mc-tags">
+            <span class="tag tg"><i class="ti ti-check" style="font-size:8px" aria-hidden="true"></i> Rookie</span>
+            <span class="tag tp">Inter active</span>
+          </div>
+          <div class="mc-prog"><span>Intermediate</span><span>45%</span></div>
+          <div class="mc-bar-bg"><div class="mc-bar" style="width:45%;background:linear-gradient(90deg,#8b5cf6,#3b82f6)"></div></div>
+        </div>
+        <div class="mc gb">
+          <div class="mc-ic" style="background:rgba(59,130,246,0.08)">
+            <i class="ti ti-brush" style="color:var(--blue);font-size:15px" aria-hidden="true"></i>
+          </div>
+          <div class="mc-title">Formatting Kings</div>
+          <div class="mc-desc">6 of 32 tasks · Intermediate active</div>
+          <div class="mc-tags">
+            <span class="tag tg"><i class="ti ti-check" style="font-size:8px" aria-hidden="true"></i> Rookie</span>
+            <span class="tag tb">Inter 2/8</span>
+          </div>
+          <div class="mc-prog"><span>Intermediate</span><span>19%</span></div>
+          <div class="mc-bar-bg"><div class="mc-bar" style="width:19%;background:linear-gradient(90deg,#3b82f6,#8b5cf6)"></div></div>
+        </div>
+        <div class="mc" style="opacity:0.35;cursor:not-allowed">
+          <div class="mc-ic" style="background:var(--s2)">
+            <i class="ti ti-chart-bar" style="color:var(--text4);font-size:15px" aria-hidden="true"></i>
+          </div>
+          <div class="mc-title" style="color:var(--text3)">Dashboard Craft</div>
+          <div class="mc-desc">Unlocks after Formatting Lv 2</div>
+          <span class="tag td"><i class="ti ti-lock" style="font-size:8px" aria-hidden="true"></i> Locked</span>
+        </div>
+        <div class="mc" style="opacity:0.35;cursor:not-allowed">
+          <div class="mc-ic" style="background:var(--s2)">
+            <i class="ti ti-search" style="color:var(--text4);font-size:15px" aria-hidden="true"></i>
+          </div>
+          <div class="mc-title" style="color:var(--text3)">Real Analysts</div>
+          <div class="mc-desc">Unlocks after Dashboard Craft</div>
+          <span class="tag td"><i class="ti ti-lock" style="font-size:8px" aria-hidden="true"></i> Locked</span>
+        </div>
+      </div>
+
+      <div class="sec-hd">Recent activity</div>
+      <div class="act-list">
+        <div class="act-row">
+          <div class="act-dot" style="background:var(--green)"></div>
+          <div class="act-txt">Ctrl+Shift+$ — Currency format challenge</div>
+          <div class="act-xp" style="color:var(--green)">+30 XP</div>
+          <div class="act-t">2h ago</div>
+        </div>
+        <div class="act-row">
+          <div class="act-dot" style="background:var(--purple)"></div>
+          <div class="act-txt">Bold + Center — Formatting Rookie Task 1</div>
+          <div class="act-xp" style="color:var(--purple2)">+40 XP</div>
+          <div class="act-t">3h ago</div>
+        </div>
+        <div class="act-row">
+          <div class="act-dot" style="background:var(--red)"></div>
+          <div class="act-txt">Alt→H→M→C — Merge &amp; Center (retried, 50% XP)</div>
+          <div class="act-xp" style="color:var(--red)">+20 XP</div>
+          <div class="act-t">Yesterday</div>
+        </div>
+        <div class="act-row">
+          <div class="act-dot" style="background:var(--blue)"></div>
+          <div class="act-txt">Rookie Level complete — Shortcut Masters</div>
+          <div class="act-xp" style="color:var(--blue2)">+100 XP</div>
+          <div class="act-t">Yesterday</div>
+        </div>
+      </div>
+
+      <div class="sec-hd">Badges</div>
+      <div class="badge-row">
+        <div class="badge bdg-p"><i class="ti ti-bolt" style="font-size:11px" aria-hidden="true"></i> Shortcut Rookie</div>
+        <div class="badge bdg-g"><i class="ti ti-flame" style="font-size:11px" aria-hidden="true"></i> 7-Day Streak</div>
+        <div class="badge bdg-gold"><i class="ti ti-star" style="font-size:11px" aria-hidden="true"></i> Perfectionist</div>
+        <div class="badge bdg-dim"><i class="ti ti-lock" style="font-size:11px" aria-hidden="true"></i> Formatting King</div>
+        <div class="badge bdg-dim"><i class="ti ti-lock" style="font-size:11px" aria-hidden="true"></i> Speed Demon</div>
+        <div class="badge bdg-dim"><i class="ti ti-lock" style="font-size:11px" aria-hidden="true"></i> Analyst Elite</div>
+      </div>
+
+      <div class="sec-hd">Leaderboard — this week</div>
+      <div class="lb-list">
+        <div class="lb-row">
+          <div class="lb-rank g">1</div>
+          <div class="lb-av" style="background:rgba(245,158,11,0.1);color:var(--amber)">SK</div>
+          <div class="lb-name">SarahK</div>
+          <i class="ti ti-star" style="color:var(--amber);font-size:12px" aria-hidden="true"></i>
+          <div class="lb-xp">4,280 XP</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank s">2</div>
+          <div class="lb-av" style="background:rgba(139,92,246,0.08);color:var(--purple2)">DD</div>
+          <div class="lb-name">DataDave</div>
+          <i class="ti ti-award" style="color:var(--text4);font-size:12px" aria-hidden="true"></i>
+          <div class="lb-xp">3,110 XP</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank b">3</div>
+          <div class="lb-av" style="background:rgba(59,130,246,0.08);color:var(--blue2)">EE</div>
+          <div class="lb-name">ExcelElla</div>
+          <i class="ti ti-award" style="color:var(--text4);font-size:12px" aria-hidden="true"></i>
+          <div class="lb-xp">2,840 XP</div>
+        </div>
+        <div class="lb-row you">
+          <div class="lb-rank" style="color:var(--purple)">4</div>
+          <div class="lb-av" style="background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(59,130,246,0.15));color:var(--purple2)">HY</div>
+          <div class="lb-name" style="color:var(--text)">You <span style="font-size:9.5px;color:var(--purple);font-weight:500;font-family:var(--mono)">(Hyatt)</span></div>
+          <i class="ti ti-trending-up" style="color:var(--green);font-size:12px" aria-hidden="true"></i>
+          <div class="lb-xp">1,240 XP</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank">5</div>
+          <div class="lb-av" style="background:var(--s2);color:var(--text4)">FM</div>
+          <div class="lb-name" style="color:var(--text3)">FormulaMike</div>
+          <span></span>
+          <div class="lb-xp" style="color:var(--text4)">980 XP</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:12px 0 4px;font-family:var(--sans);font-size:11px;color:var(--text4)">
+        +890 XP to reach rank #3
+      </div>
+
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,89 @@
+GRIDCRAFTERS — PROFILE + LEADERBOARD VISUAL OVERHAUL + EDIT NAME. CSS/layout changes only except the edit-name feature. No backend logic changes except the single name-update call.
+
+FIX 1 — PROFILE PAGE
+Header card: Replace the plain dark card with a gradient-border card:
+
+background: linear-gradient(#1a1a17,#1a1a17) padding-box, linear-gradient(135deg,#8b5cf6,#3b82f6) border-box; border: 1px solid transparent; border-radius: 12px; padding: 24px 28px;
+Avatar: keep initials circle, increase to 52px, gradient bg linear-gradient(135deg,#3b0764,#1e3a8a), Geist 700 18px white.
+Name: Geist 700 20px #f0ede6. Email: Geist 400 13px #8a857a. Below name add inline edit:
+Edit name feature: Next to the name add a small pencil icon button (use a simple SVG pencil, 14px, color #5a5650, hover #a78bfa). On click: replace name text with an <input> pre-filled with current name, styled bg #1a1a17 border #3d3d38 focus:border-#8b5cf6 rounded-6px px-10px py-4px Geist 600 18px #f0ede6 w-auto. Show [Save] button: bg gradient px-12px py-4px rounded-6px Geist 600 12px white and [Cancel] ghost button. On Save: call supabase.from('profiles').update({ full_name: newName }).eq('id', user.id) then update local state and close input. On success show a small green "Saved" toast for 1.5s. No page reload.
+XP Progress row: Replace plain bar with:
+
+Label: Geist 600 12px uppercase tracking 1px #5a5650 "XP Progress"
+
+Fraction: DM Mono 500 13px, current XP color #a78bfa, slash+total #5a5650
+
+Bar: height 6px, bg #2c2c28, fill linear-gradient(90deg,#8b5cf6,#3b82f6), radius 99px
+
+Below bar: "X% to next level" Geist 400 12px #8a857a left + "Joined June 2026" DM Mono 10px #5a5650 right
+Streak card (right side): Replace the isolated flame icon card with a proper styled card:
+
+background: linear-gradient(135deg, rgba(245,158,11,0.10), rgba(245,158,11,0.04)); border: 1px solid rgba(245,158,11,0.30); border-radius: 10px; padding: 20px 24px;
+
+Top row: "Day Streak" Geist 600 11px uppercase tracking 1px #f59e0b
+
+Number: DM Mono 700 36px #fbbf24
+
+Sub: "days active" Geist 400 12px #8a857a
+
+Divider #3d3d38
+
+Below: "Best streak" Geist 500 12px #8a857a + number DM Mono 600 14px #fbbf24
+Add 2 more stat cards in a row next to streak card (make it a 3-col grid):
+
+Total XP card: bg linear-gradient(135deg,rgba(139,92,246,0.10),rgba(139,92,246,0.04)) border rgba(139,92,246,0.30) — label "Total XP" #8b5cf6, number gradient DM Mono 700 28px
+
+Levels Done card: bg linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.04)) border rgba(34,197,94,0.25) — label "Levels Done" #22c55e, number #4ade80 DM Mono 700 28px
+Activity History section:
+
+Section label: Geist 600 11px uppercase tracking 1.5px #5a5650, add colored left border accent 3px solid #8b5cf6, padding-left 10px
+
+Empty state: replace plain text with centered card bg #1a1a17 border #3d3d38 border-radius 8px padding 32px containing:
+
+Icon: ⊞ 24px #3d3d38
+"No activity yet" Geist 600 14px #8a857a
+"Complete your first challenge to see history here" Geist 400 12px #5a5650
+Button: "Start Shortcut Masters →" gradient bg white Geist 600 12px, links to /shortcuts
+
+Remove all emojis from profile page EXCEPT the 🔥 flame in streak display. Replace any other emojis (trophies, stars used as decoration) with nothing — just text labels.
+
+FIX 2 — LEADERBOARD PAGE
+Table container: bg #1a1a17 border 1px solid #3d3d38 border-radius 12px overflow hidden
+Header row: bg #161614 border-bottom 1px solid #3d3d38 padding 10px 20px
+
+Column labels: Geist 600 10px uppercase tracking 1.2px #5a5650
+Each leaderboard row: padding 14px 20px border-bottom 1px solid #2c2c28
+
+Hover: bg #232320
+Rank column:
+
+#1 — DM Mono 700 15px #fbbf24 (amber, no emoji/trophy)
+
+#2 — DM Mono 700 15px #9ca3af (silver)
+
+#3 — DM Mono 700 15px #b45309 (bronze)
+
+#4+ — DM Mono 500 14px #5a5650
+Avatar: 36px circle, gradient bg linear-gradient(135deg,#3b0764,#1e3a8a), Geist 700 13px white initials
+Name column: Geist 600 14px #f0ede6. "you" chip: bg rgba(139,92,246,0.12) border rgba(139,92,246,0.25) color #a78bfa Geist 600 9px uppercase px-6px py-2px radius-4px — keep this chip, it's useful.
+
+Sub-row: streak number + "day streak" Geist 400 11px #8a857a, DM Mono for the number #f59e0b. Level: Geist 400 11px #5a5650. Remove flame emoji — just show the number and "day streak" text.
+XP column: DM Mono 600 14px gradient linear-gradient(135deg,#a78bfa,#60a5fa) -webkit-background-clip text
+Levels + Badges columns: DM Mono 500 13px #8a857a
+"You" row highlight:
+
+background: linear-gradient(90deg, rgba(139,92,246,0.08), transparent); border-left: 3px solid #8b5cf6;
+Live badge (top right of page): bg rgba(139,92,246,0.12) border rgba(139,92,246,0.25) color #a78bfa Geist 600 11px px-10px py-5px radius-99px — just the word "live", no dot animation needed.
+Empty leaderboard state (when only 1 user): Below the single row add a muted card:
+
+bg #161614 border #2c2c28 border-radius 8px padding 20px margin-top 12px text-center
+
+"You're #1 — invite others to compete" Geist 400 13px #5a5650
+Remove ALL emojis from leaderboard entirely — no trophies, no flames, no stars. Numbers and text only.
+
+RULES:
+
+Zero backend changes except the single supabase.from('profiles').update({full_name}) call
+No new routes, no new hooks
+Remove emojis sitewide EXCEPT 🔥 in streak pill (topbar) and streak count in sidebar XP card — those two stay
+Build must pass after changes

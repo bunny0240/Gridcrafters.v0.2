@@ -1,0 +1,488 @@
+Update the GridCrafters brand identity — logo mark, wordmark, and
+tagline — across the entire app. Apply consistently in sidebar,
+topbar, loading screens, and any other branded surface.
+
+---
+
+## LOGO MARK — SVG component
+
+Create a reusable React component called <GridLogo /> at
+src/components/ui/GridLogo.tsx
+
+The mark is a 2×2 grid of squares with a cross divider cut through
+the middle and a glowing center node. The diagonal squares (top-left
+and bottom-right) are fully opaque. The off-diagonal squares (top-right
+and bottom-left) are at 40% opacity. This creates a visual depth that
+reads as an active spreadsheet grid — not a flat icon.
+
+```tsx
+import React from 'react'
+
+interface GridLogoProps {
+  size?: number
+  className?: string
+}
+
+export function GridLogo({ size = 32, className = '' }: GridLogoProps) {
+  const id = `grad-${Math.random().toString(36).slice(2, 7)}`
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-label="GridCrafters logo mark"
+      role="img"
+    >
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="40" y2="40"
+          gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#8b5cf6" />
+          <stop offset="100%" stopColor="#3b82f6" />
+        </linearGradient>
+      </defs>
+
+      {/* Container */}
+      <rect width="40" height="40" rx="9" fill="#161614"
+        stroke="#2a2a26" strokeWidth="1" />
+
+      {/* Top-left square — fully opaque (active) */}
+      <rect x="5" y="5" width="13" height="13" rx="2.5"
+        fill={`url(#${id})`} />
+
+      {/* Top-right square — 40% opacity (inactive) */}
+      <rect x="22" y="5" width="13" height="13" rx="2.5"
+        fill={`url(#${id})`} opacity="0.4" />
+
+      {/* Bottom-left square — 40% opacity (inactive) */}
+      <rect x="5" y="22" width="13" height="13" rx="2.5"
+        fill={`url(#${id})`} opacity="0.4" />
+
+      {/* Bottom-right square — fully opaque (active) */}
+      <rect x="22" y="22" width="13" height="13" rx="2.5"
+        fill={`url(#${id})`} />
+
+      {/* Vertical divider — cut through the background color */}
+      <rect x="17.5" y="5" width="5" height="30" fill="#161614" />
+
+      {/* Horizontal divider — cut through the background color */}
+      <rect x="5" y="17.5" width="30" height="5" fill="#161614" />
+
+      {/* Center node — glowing intersection point */}
+      <rect x="18.5" y="18.5" width="3" height="3" rx="0.5"
+        fill={`url(#${id})`} />
+    </svg>
+  )
+}
+```
+
+---
+
+## WORDMARK — brand text component
+
+Create src/components/ui/BrandMark.tsx
+
+Three variants: 'full' (sidebar default), 'compact' (icon-collapsed
+sidebar), 'topbar' (if used in a top nav).
+
+```tsx
+import React from 'react'
+import { GridLogo } from './GridLogo'
+
+type BrandVariant = 'full' | 'compact' | 'topbar'
+
+interface BrandMarkProps {
+  variant?: BrandVariant
+  className?: string
+}
+
+export function BrandMark({
+  variant = 'full',
+  className = ''
+}: BrandMarkProps) {
+
+  if (variant === 'compact') {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <GridLogo size={28} />
+      </div>
+    )
+  }
+
+  const logoSize = variant === 'topbar' ? 24 : 28
+  const nameSize = variant === 'topbar' ? 'text-[14px]' : 'text-[15px]'
+  const subSize  = variant === 'topbar' ? 'text-[8.5px]' : 'text-[9.5px]'
+
+  return (
+    <div className={`flex items-center gap-[10px] ${className}`}>
+      <GridLogo size={logoSize} />
+      <div className="flex flex-col leading-none">
+
+        {/* Wordmark */}
+        <span
+          className={`${nameSize} font-bold tracking-[-0.4px] text-[#e8e6e0]`}
+          style={{ fontFamily: 'Geist, -apple-system, sans-serif' }}
+        >
+          Grid
+          <span
+            style={{
+              background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Crafters
+          </span>
+        </span>
+
+        {/* Tagline */}
+        <span
+          className={`${subSize} font-normal tracking-[0.5px] uppercase mt-[3px]`}
+          style={{
+            fontFamily: 'Geist, -apple-system, sans-serif',
+            color: '#5a5750',
+          }}
+        >
+          Made by Hyatt
+        </span>
+
+      </div>
+    </div>
+  )
+}
+```
+
+---
+
+## SIDEBAR — replace existing logo area
+
+In your Sidebar component, find the logo/brand section at the top
+and replace it entirely with:
+
+```tsx
+import { BrandMark } from '@/components/ui/BrandMark'
+
+// Inside sidebar JSX — top section:
+<div className="px-4 py-[18px] border-b border-[#2a2a26]">
+  <BrandMark variant="full" />
+</div>
+```
+
+If the sidebar has a collapsed/icon-only state, conditionally render:
+
+```tsx
+<div className="px-4 py-[18px] border-b border-[#2a2a26]
+  flex items-center justify-center">
+  {isCollapsed
+    ? <BrandMark variant="compact" />
+    : <BrandMark variant="full" />
+  }
+</div>
+```
+
+---
+
+## SIDEBAR FULL SPEC
+
+After the brand area, the sidebar structure is:
+
+```tsx
+<aside className="w-[228px] bg-[#161614] border-r border-[#1e1e2e]
+  flex flex-col flex-shrink-0 h-full">
+
+  {/* Logo area */}
+  <div className="px-4 py-[18px] border-b border-[#2a2a26]">
+    <BrandMark variant="full" />
+  </div>
+
+  {/* Nav */}
+  <nav className="flex-1 py-2 overflow-hidden">
+
+    {/* Section label */}
+    <div className="px-4 pt-3 pb-1 text-[9px] font-semibold
+      tracking-[1.2px] uppercase text-[#3a3834]"
+      style={{ fontFamily: 'Geist, sans-serif' }}>
+      Learn
+    </div>
+
+    {/* Nav items — see nav item spec below */}
+    <NavItem icon="keyboard" label="Shortcut Masters" active="purple" />
+    <NavItem icon="brush"    label="Formatting Kings"  active="blue" />
+    <NavItem icon="chart"    label="Dashboard Craft"   chip="soon" />
+    <NavItem icon="search"   label="Real Analysts"     chip="soon" />
+
+    <div className="px-4 pt-4 pb-1 text-[9px] font-semibold
+      tracking-[1.2px] uppercase text-[#3a3834] mt-2"
+      style={{ fontFamily: 'Geist, sans-serif' }}>
+      Community
+    </div>
+
+    <NavItem icon="trophy" label="Leaderboard" chip="live" />
+    <NavItem icon="user"   label="Profile" />
+    <NavItem icon="settings" label="Settings" />
+
+  </nav>
+
+  {/* XP card — pinned to bottom */}
+  <div className="p-[10px]">
+    <XPCard />
+  </div>
+
+</aside>
+```
+
+Nav item active states — purple for Shortcut Masters, blue for
+Formatting Kings:
+
+```tsx
+// Purple active
+className="border-l-[2px] border-[#8b5cf6]
+  bg-gradient-to-r from-[rgba(139,92,246,0.10)] to-transparent
+  text-[#c4b5fd]"
+
+// Blue active
+className="border-l-[2px] border-[#3b82f6]
+  bg-gradient-to-r from-[rgba(59,130,246,0.08)] to-transparent
+  text-[#93c5fd]"
+
+// Inactive
+className="border-l-[2px] border-transparent text-[#52526e]"
+
+// Hover (all inactive items)
+className="hover:text-[#a8a49a] hover:bg-[#1c1c1a]"
+
+// All nav items share:
+className="flex items-center gap-[10px] px-4 py-[8px]
+  text-[12.5px] font-[400] transition-all duration-100"
+style={{ fontFamily: 'Geist, sans-serif' }}
+```
+
+Chips inside nav items:
+
+```tsx
+// Soon chip
+<span className="ml-auto text-[9px] font-[500] px-[6px] py-[2px]
+  rounded-[4px] bg-[#1c1c1a] text-[#3a3834] border border-[#2a2a26]"
+  style={{ fontFamily: 'DM Mono, monospace' }}>
+  soon
+</span>
+
+// Live chip
+<span className="ml-auto text-[9px] font-[500] px-[6px] py-[2px]
+  rounded-[4px] bg-[rgba(139,92,246,0.08)] text-[#8b5cf6]
+  border border-[rgba(139,92,246,0.2)]"
+  style={{ fontFamily: 'DM Mono, monospace' }}>
+  live
+</span>
+```
+
+---
+
+## XP CARD — bottom of sidebar
+
+```tsx
+<div className="bg-[#1c1c1a] border border-[#2a2a26] rounded-[8px]
+  p-[12px_13px]"
+  style={{ fontFamily: 'Geist, sans-serif' }}>
+
+  {/* Top row */}
+  <div className="flex justify-between items-baseline mb-[2px]">
+    <span className="text-[13px] font-[600] text-[#e8e6e0]
+      tracking-[-0.2px]">
+      Level 3
+    </span>
+    <span className="text-[11px] font-[500]"
+      style={{
+        fontFamily: 'DM Mono, monospace',
+        background: 'linear-gradient(135deg,#8b5cf6,#3b82f6)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+      }}>
+      1,240 XP
+    </span>
+  </div>
+
+  {/* Sub label */}
+  <div className="text-[10px] font-[400] text-[#5a5750] mb-[8px]">
+    Analyst · 62% to Level 4
+  </div>
+
+  {/* Progress bar */}
+  <div className="h-[3px] bg-[#242420] rounded-full overflow-hidden
+    mb-[5px]">
+    <div className="h-full w-[62%] rounded-full"
+      style={{ background: 'linear-gradient(90deg,#8b5cf6,#3b82f6)' }} />
+  </div>
+
+  {/* Bar meta */}
+  <div className="flex justify-between text-[10px] text-[#3a3834]"
+    style={{ fontFamily: 'DM Mono, monospace' }}>
+    <span>760 XP remaining</span>
+    <span>62%</span>
+  </div>
+
+  {/* Streak */}
+  <div className="flex items-center gap-[5px] text-[11px]
+    text-[#f59e0b] font-[500] mt-[8px] pt-[8px]
+    border-t border-[#2a2a26]">
+    🔥 7-day streak active
+  </div>
+
+</div>
+```
+
+---
+
+## PAGE TOPBAR — dashboard header
+
+```tsx
+<header className="px-5 py-[14px] border-b border-[#2a2a26]
+  flex items-center justify-between flex-shrink-0">
+  <div>
+    <h1 className="text-[22px] font-[700] text-[#e8e6e0]
+      tracking-[-0.5px] leading-[1.1]"
+      style={{ fontFamily: 'Geist, sans-serif' }}>
+      Dashboard
+    </h1>
+    <p className="text-[11px] font-[400] text-[#5a5750] mt-[3px]"
+      style={{ fontFamily: 'Geist, sans-serif' }}>
+      Welcome back, Hyatt — pick up where you left off
+    </p>
+  </div>
+
+  <div className="flex items-center gap-[10px]">
+
+    {/* Streak pill */}
+    <div className="flex items-center gap-[5px] bg-[#1c1c1a]
+      border border-[#2a2a26] rounded-full px-[11px] py-[5px]
+      text-[11px] text-[#f59e0b] font-[600]"
+      style={{ fontFamily: 'Geist, sans-serif' }}>
+      🔥 7
+    </div>
+
+    {/* Divider */}
+    <div className="w-[1px] h-[16px] bg-[#2a2a26]" />
+
+    {/* Avatar */}
+    <div className="w-[32px] h-[32px] rounded-full flex items-center
+      justify-center text-[12px] font-[700] text-white
+      border-[1.5px] border-[#333330]"
+      style={{
+        background: 'linear-gradient(135deg,#3b0764,#1e3a8a)',
+        fontFamily: 'Geist, sans-serif',
+      }}>
+      HY
+    </div>
+
+  </div>
+</header>
+```
+
+---
+
+## BRAND COLORS — CSS variables to add
+
+In your global CSS file:
+
+```css
+:root {
+  /* Brand gradient — used on logo accent, XP bar, key badges */
+  --brand-grad: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  --brand-grad-h: linear-gradient(90deg, #8b5cf6, #3b82f6);
+
+  /* Purple channel */
+  --purple:       #8b5cf6;
+  --purple-light: #a78bfa;
+  --purple-dim:   rgba(139, 92, 246, 0.08);
+  --purple-border:rgba(139, 92, 246, 0.20);
+
+  /* Blue channel */
+  --blue:         #3b82f6;
+  --blue-light:   #60a5fa;
+  --blue-dim:     rgba(59, 130, 246, 0.08);
+  --blue-border:  rgba(59, 130, 246, 0.18);
+
+  /* Surfaces */
+  --bg:      #111110;
+  --s1:      #161614;
+  --s2:      #1c1c1a;
+  --s3:      #242420;
+  --border:  #2a2a26;
+  --border2: #333330;
+
+  /* Text */
+  --text:  #e8e6e0;
+  --text2: #a8a49a;
+  --text3: #5a5750;
+  --text4: #3a3834;
+}
+```
+
+---
+
+## GRADIENT TEXT UTILITY
+
+Add this utility class to your global CSS for reuse anywhere:
+
+```css
+.grad-text {
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.grad-border {
+  background:
+    linear-gradient(var(--s1), var(--s1)) padding-box,
+    linear-gradient(135deg, #8b5cf6, #3b82f6) border-box;
+  border: 1px solid transparent;
+}
+```
+
+---
+
+## NON-NEGOTIABLE RULES
+
+1. GridLogo SVG must use a unique gradient id per instance — use
+   Math.random() to generate it as shown. Without this, multiple
+   logos on the same page will all reference the same gradient and
+   break in some browsers.
+
+2. The word "Grid" is always plain #e8e6e0. Only "Crafters" gets
+   the purple→blue gradient. Never gradient the full wordmark.
+
+3. "Made by Hyatt" tagline is ALWAYS visible in the full sidebar
+   variant. Font: Geist 400, 9.5px, uppercase, tracking 0.5px,
+   color #5a5750. Never remove it.
+
+4. The logo mark background fill (#161614) must match the sidebar
+   background exactly so the dividers look cut-through, not painted.
+   If the sidebar bg changes, update the SVG fill rects to match.
+
+5. Logo mark border-radius is always rx="9" on the outer rect and
+   rx="2.5" on the inner squares. Never change these.
+
+6. Active nav item for Shortcut Masters always uses purple accent.
+   Active nav item for Formatting Kings always uses blue accent.
+   These are fixed — do not swap them.
+
+7. The XP bar always uses the horizontal gradient
+   linear-gradient(90deg, #8b5cf6, #3b82f6). The brand mark
+   uses the diagonal gradient linear-gradient(135deg, ...).
+   Do not mix them up.
+
+8. Avatar initials always use Geist 700. They represent the user
+   so they should feel sharp and confident, not rounded or playful.
+
+9. Nav section labels (Learn, Community) use Geist 600, 9px,
+   uppercase, letter-spacing 1.2px, color #3a3834.
+   They are deliberately very dark — they are dividers, not headings.
+
+10. The sidebar chip "soon" uses DM Mono for the monospace feel.
+    The chip "live" also uses DM Mono with purple color.
+    Both chips use border-radius 4px (not pill) to match the
+    rest of the UI's non-childish, squared-off aesthetic.Sonnet 4.6 LowClaude is A

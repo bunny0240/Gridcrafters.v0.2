@@ -1,0 +1,857 @@
+Each shortcut row highlights briefly (purple flash) when
+that shortcut is detected and applied.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 3 — AUTHENTICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AUTH FLOW:
+
+Landing page (/) shows:
+  Left: GridCrafters brand + value prop
+  Right: auth card — tabs [Sign In] [Sign Up]
+
+Sign Up form:
+  Full Name    (text input, required)
+  Email        (email input, required)
+  Password     (password input, min 8 chars)
+  [Create Account] button
+
+Sign In form:
+  Email
+  Password
+  [Sign In] button
+  "Forgot password?" link
+
+On successful auth → redirect to /dashboard
+
+Auth card styling:
+  background: #161614
+  border: 1px solid #2a2a26
+  border-radius: 12px
+  padding: 28px 32px
+  width: 380px
+
+Input styling:
+  background: #1c1c1a
+  border: 1px solid #2a2a26
+  border-radius: 7px
+  padding: 10px 14px
+  font-family: Geist 400 13px
+  color: #e8e6e0
+  width: 100%
+  outline: none
+  focus: border-color #8b5cf6
+         box-shadow 0 0 0 2px rgba(139,92,246,0.12)
+
+Label styling:
+  Geist 500 11px #a8a49a
+  margin-bottom 5px
+  display block
+
+Error state:
+  border-color: #ef4444
+  small error text below input: Geist 400 11px #ef4444
+
+Tab styling:
+  Active tab: Geist 600 13px #e8e6e0 border-bottom 2px #8b5cf6
+  Inactive tab: Geist 400 13px #5a5750
+
+User profile stored in Supabase profiles table:
+  id (uuid, from auth.users)
+  username (from email prefix or entered name)
+  full_name (from sign up form)
+  total_xp
+  level
+  streak_count
+  last_active
+
+After sign up, auto-create profile row via database trigger.
+
+Protected routes — wrap with AuthGuard:
+  /dashboard, /shortcuts, /formatting, /leaderboard, /profile
+  If no session → redirect to /
+
+Personalization throughout app:
+  Topbar subtitle: "Welcome back, {full_name}" or "{first_name}"
+  Avatar: initials from full_name (first letter of each word, max 2)
+  Profile page: show full_name, email, joined date
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 4 — HISTORY, PROGRESS TRACKING & LEVEL TICKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every action a user takes must be saved to Supabase immediately.
+No localStorage-only fallback for authenticated users.
+
+HISTORY TABLE — records every challenge attempt:
+
+```sql
+create table public.activity_log (
+  id              uuid default uuid_generate_v4() primary key,
+  user_id         uuid references public.profiles(id) on delete cascade,
+  module          text not null check (module in ('shortcuts','formatting')),
+  level_name      text not null,
+  challenge_id    text not null,
+  challenge_title text not null,
+  action          text not null check (action in (
+                    'started','completed','failed',
+                    'retried','skipped','studied')),
+  xp_earned       integer not null default 0,
+  score           integer,
+  hints_used      integer not null default 0,
+  time_taken_sec  integer,
+  combo_at_time   integer not null default 0,
+  created_at      timestamptz not null default now()
+);
+
+create index idx_activity_user_recent
+  on public.activity_log(user_id, created_at desc);
+```
+
+LEVEL COMPLETION — tracked in a dedicated table:
+
+```sql
+create table public.level_completion (
+  id            uuid default uuid_generate_v4() primary key,
+  user_id       uuid references public.profiles(id) on delete cascade,
+  module        text not null,
+  level_name    text not null,
+  completed_at  timestamptz not null default now(),
+  stars         integer not null default 1 check (stars between 1 and 3),
+  total_xp      integer not null default 0,
+  attempts      integer not null default 0,
+  best_score    integer not null default 0,
+  unique(user_id, module, level_name)
+);
+```
+
+Stars calculation:
+  3 stars: completed all challenges with 0 hints and 0 retries
+  2 stars: completed with 1–3 hints or 1 retry
+  1 star:  completed with 4+ hints or 2+ retries
+
+Level is marked complete when:
+  Shortcut module: 100% of challenges in that level completed
+  Formatting module: all challenges in that level completed
+  (not 70% — completion means ALL done, 70% unlocks next level)
+
+WHAT TO SAVE ON EACH EVENT:
+
+1. Challenge started:
+   INSERT activity_log: action='started'
+
+2. Challenge completed:
+   INSERT activity_log: action='completed', xp_earned, score, time_taken_sec
+   UPSERT shortcut_progress or formatting_progress: status='completed', bestXP
+   UPSERT last_challenge table
+   CHECK if level now complete → if yes:
+     INSERT level_completion (or UPDATE if revisiting)
+     Award level completion XP bonus:
+       Rookie: +100 XP
+       Intermediate: +200 XP
+       Advanced: +300 XP
+       Expert: +500 XP
+     Trigger badge check
+
+3. Hint used:
+   UPDATE shortcut_progress: hints_used += 1
+
+4. Challenge failed (3 wrong, timeout):
+   INSERT activity_log: action='failed'
+
+5. Retry:
+   INSERT activity_log: action='retried'
+
+6. Skip:
+   INSERT activity_log: action='skipped'
+   UPDATE status to 'review' in progress table
+
+7. Study tab marked:
+   INSERT activity_log: action='studied'
+   UPDATE status to 'studied' in progress table
+
+HISTORY VIEW on Profile page:
+
+Show last 20 activity_log entries per user:
+  Grouped by date (Today, Yesterday, [date])
+  Each row shows:
+    Module icon + challenge title
+    Action chip (Completed=green, Failed=red, Skipped=amber)
+    XP earned (DM Mono green)
+    Time taken
+    Stars (if completed)
+    Relative timestamp (DM Mono muted)
+
+REVISIT COMPLETED LEVELS:
+
+If level_completion row exists for a level → show tick.
+User can still click "Revisit" on any completed level.
+On revisit:
+  Load same challenges in challenge mode (study already complete)
+  Any XP earned is bonus XP (no cap, but no level-completion bonus)
+  Stars can be improved (if they get 3 stars now vs 2 before,
+  UPDATE level_completion.stars)
+
+LEVEL BOX TICK — additional display rule:
+  If level_completion exists: show filled green ✓ in header
+  If level partially done: show progress fraction
+  If level not started: show lock or empty state
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 5 — COMPLETE BACKEND (run in order)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP A — Supabase project setup:
+  1. Go to supabase.com → New Project
+  2. Name: gridcrafters
+  3. Region: closest to your users
+  4. Password: generate strong password, save it
+  5. Wait ~2 minutes for provisioning
+
+STEP B — Copy credentials:
+  Dashboard → Settings → API
+  Copy: Project URL → VITE_SUPABASE_URL
+  Copy: anon public → VITE_SUPABASE_ANON_KEY
+
+STEP C — Run complete SQL schema:
+
+Open SQL Editor in Supabase and run this entire block:
+
+```sql
+-- Extensions
+create extension if not exists "uuid-ossp";
+
+-- ─────────────────────────────────────────
+-- PROFILES
+-- ─────────────────────────────────────────
+create table public.profiles (
+  id            uuid references auth.users(id) on delete cascade primary key,
+  username      text unique not null,
+  full_name     text not null default '',
+  email         text not null default '',
+  avatar_url    text,
+  total_xp      integer not null default 0,
+  level         integer not null default 1,
+  streak_count  integer not null default 0,
+  last_active   date,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer as $$
+begin
+  insert into public.profiles (id, username, full_name, email)
+  values (
+    new.id,
+    coalesce(
+      new.raw_user_meta_data->>'username',
+      split_part(new.email, '@', 1)
+    ),
+    coalesce(new.raw_user_meta_data->>'full_name', ''),
+    new.email
+  );
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- ─────────────────────────────────────────
+-- SHORTCUT PROGRESS
+-- ─────────────────────────────────────────
+create table public.shortcut_progress (
+  id            uuid default uuid_generate_v4() primary key,
+  user_id       uuid references public.profiles(id) on delete cascade,
+  shortcut_id   text not null,
+  level_name    text not null,
+  status        text not null default 'locked'
+                check (status in ('locked','studied','completed','review')),
+  attempts      integer not null default 0,
+  best_xp       integer not null default 0,
+  hints_used    integer not null default 0,
+  completed_at  timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now(),
+  unique(user_id, shortcut_id)
+);
+
+-- ─────────────────────────────────────────
+-- FORMATTING PROGRESS
+-- ─────────────────────────────────────────
+create table public.formatting_progress (
+  id            uuid default uuid_generate_v4() primary key,
+  user_id       uuid references public.profiles(id) on delete cascade,
+  challenge_id  text not null,
+  level_name    text not null,
+  status        text not null default 'locked'
+                check (status in ('locked','studied','completed')),
+  best_score    integer not null default 0,
+  attempts      integer not null default 0,
+  hints_used    integer not null default 0,
+  completed_at  timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now(),
+  unique(user_id, challenge_id)
+);
+
+-- ─────────────────────────────────────────
+-- XP TRANSACTIONS
+-- ─────────────────────────────────────────
+create table public.xp_transactions (
+  id          uuid default uuid_generate_v4() primary key,
+  user_id     uuid references public.profiles(id) on delete cascade,
+  amount      integer not null,
+  source      text not null,
+  source_id   text,
+  module      text not null
+              check (module in ('shortcuts','formatting','streak',
+                                'badge','level_complete')),
+  created_at  timestamptz not null default now()
+);
+
+create or replace function public.update_total_xp()
+returns trigger language plpgsql security definer as $$
+begin
+  update public.profiles
+  set
+    total_xp   = total_xp + new.amount,
+    level      = case
+      when (total_xp + new.amount) >= 12000 then 6
+      when (total_xp + new.amount) >= 6000  then 5
+      when (total_xp + new.amount) >= 3000  then 4
+      when (total_xp + new.amount) >= 1500  then 3
+      when (total_xp + new.amount) >= 500   then 2
+      else 1
+    end,
+    updated_at = now()
+  where id = new.user_id;
+  return new;
+end;
+$$;
+
+create trigger on_xp_earned
+  after insert on public.xp_transactions
+  for each row execute procedure public.update_total_xp();
+
+-- ─────────────────────────────────────────
+-- LEVEL COMPLETION
+-- ─────────────────────────────────────────
+create table public.level_completion (
+  id            uuid default uuid_generate_v4() primary key,
+  user_id       uuid references public.profiles(id) on delete cascade,
+  module        text not null
+                check (module in ('shortcuts','formatting')),
+  level_name    text not null,
+  completed_at  timestamptz not null default now(),
+  stars         integer not null default 1
+                check (stars between 1 and 3),
+  total_xp      integer not null default 0,
+  attempts      integer not null default 0,
+  best_score    integer not null default 0,
+  unique(user_id, module, level_name)
+);
+
+-- ─────────────────────────────────────────
+-- ACTIVITY LOG
+-- ─────────────────────────────────────────
+create table public.activity_log (
+  id              uuid default uuid_generate_v4() primary key,
+  user_id         uuid references public.profiles(id) on delete cascade,
+  module          text not null
+                  check (module in ('shortcuts','formatting')),
+  level_name      text not null,
+  challenge_id    text not null,
+  challenge_title text not null,
+  action          text not null
+                  check (action in ('started','completed','failed',
+                                    'retried','skipped','studied')),
+  xp_earned       integer not null default 0,
+  score           integer,
+  hints_used      integer not null default 0,
+  time_taken_sec  integer,
+  combo_at_time   integer not null default 0,
+  created_at      timestamptz not null default now()
+);
+
+create index idx_activity_user_recent
+  on public.activity_log(user_id, created_at desc);
+
+-- ─────────────────────────────────────────
+-- BADGES
+-- ─────────────────────────────────────────
+create table public.badges (
+  id          text primary key,
+  name        text not null,
+  description text not null,
+  icon        text not null,
+  condition   text not null
+);
+
+insert into public.badges values
+('shortcut_rookie',   'Shortcut Rookie',   'Complete all Rookie shortcuts',           '⌨️', 'shortcuts_rookie_complete'),
+('shortcut_inter',    'Shortcut Pro',      'Complete Intermediate shortcuts',          '🚀', 'shortcuts_inter_complete'),
+('shortcut_adv',      'Shortcut Master',   'Complete Advanced shortcuts',              '🎯', 'shortcuts_adv_complete'),
+('formatting_rookie', 'Format Starter',    'Complete Rookie formatting challenges',    '🎨', 'formatting_rookie_complete'),
+('formatting_king',   'Formatting King',   'Complete all formatting challenges',       '👑', 'formatting_all_complete'),
+('seven_day_streak',  '7-Day Streak',      'Log in 7 days in a row',                  '🔥', 'streak_7'),
+('thirty_day_streak', '30-Day Streak',     'Log in 30 days in a row',                 '⚡', 'streak_30'),
+('speed_demon',       'Speed Demon',       'Complete a challenge under 3 seconds',     '💨', 'speed_under_3'),
+('perfectionist',     'Perfectionist',     'Complete 5 challenges with zero hints',    '🎯', 'no_hints_5'),
+('combo_king',        'Combo King',        'Reach a 10x combo streak',                 '🔗', 'combo_10'),
+('excel_master',      'Excel Master',      'Complete all levels in both modules',      '🌟', 'all_complete');
+
+create table public.user_badges (
+  id        uuid default uuid_generate_v4() primary key,
+  user_id   uuid references public.profiles(id) on delete cascade,
+  badge_id  text references public.badges(id),
+  earned_at timestamptz not null default now(),
+  unique(user_id, badge_id)
+);
+
+-- ─────────────────────────────────────────
+-- LAST CHALLENGE (resume card)
+-- ─────────────────────────────────────────
+create table public.last_challenge (
+  user_id          uuid references public.profiles(id)
+                   on delete cascade primary key,
+  module           text not null
+                   check (module in ('shortcuts','formatting')),
+  challenge_id     text not null,
+  challenge_title  text not null,
+  level_name       text not null,
+  tasks_completed  integer not null default 0,
+  total_tasks      integer not null default 0,
+  xp_reward        integer not null default 0,
+  last_seen        timestamptz not null default now()
+);
+
+-- ─────────────────────────────────────────
+-- STREAK TRACKING
+-- ─────────────────────────────────────────
+create or replace function public.update_streak(p_user_id uuid)
+returns void language plpgsql security definer as $$
+declare
+  v_last_active date;
+  v_today date := current_date;
+begin
+  select last_active into v_last_active
+  from public.profiles where id = p_user_id;
+
+  if v_last_active = v_today then
+    return; -- already logged in today
+  elsif v_last_active = v_today - interval '1 day' then
+    -- consecutive day
+    update public.profiles
+    set streak_count = streak_count + 1,
+        last_active  = v_today,
+        updated_at   = now()
+    where id = p_user_id;
+  else
+    -- streak broken
+    update public.profiles
+    set streak_count = 1,
+        last_active  = v_today,
+        updated_at   = now()
+    where id = p_user_id;
+  end if;
+end;
+$$;
+
+-- ─────────────────────────────────────────
+-- LEADERBOARD VIEW
+-- ─────────────────────────────────────────
+create or replace view public.leaderboard as
+select
+  p.id,
+  p.username,
+  p.full_name,
+  p.avatar_url,
+  p.total_xp,
+  p.level,
+  p.streak_count,
+  count(distinct ub.badge_id)            as badge_count,
+  count(distinct lc.id)                  as levels_complete,
+  rank() over (order by p.total_xp desc) as rank
+from public.profiles p
+left join public.user_badges    ub on ub.user_id = p.id
+left join public.level_completion lc on lc.user_id = p.id
+group by p.id, p.username, p.full_name, p.avatar_url,
+         p.total_xp, p.level, p.streak_count
+order by p.total_xp desc;
+
+-- ─────────────────────────────────────────
+-- INDEXES
+-- ─────────────────────────────────────────
+create index idx_shortcut_progress_user
+  on public.shortcut_progress(user_id);
+create index idx_formatting_progress_user
+  on public.formatting_progress(user_id);
+create index idx_xp_transactions_user
+  on public.xp_transactions(user_id, created_at desc);
+create index idx_level_completion_user
+  on public.level_completion(user_id, module);
+create index idx_profiles_xp
+  on public.profiles(total_xp desc);
+
+-- ─────────────────────────────────────────
+-- ROW LEVEL SECURITY
+-- ─────────────────────────────────────────
+alter table public.profiles            enable row level security;
+alter table public.shortcut_progress   enable row level security;
+alter table public.formatting_progress enable row level security;
+alter table public.xp_transactions     enable row level security;
+alter table public.level_completion    enable row level security;
+alter table public.activity_log        enable row level security;
+alter table public.user_badges         enable row level security;
+alter table public.last_challenge      enable row level security;
+
+-- Profiles: all can read, own can write
+create policy "profiles_select_all"
+  on public.profiles for select using (true);
+create policy "profiles_insert_own"
+  on public.profiles for insert with check (auth.uid() = id);
+create policy "profiles_update_own"
+  on public.profiles for update using (auth.uid() = id);
+
+-- Progress: own only
+create policy "shortcut_progress_own"
+  on public.shortcut_progress for all using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+create policy "formatting_progress_own"
+  on public.formatting_progress for all using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- XP: own only
+create policy "xp_transactions_own"
+  on public.xp_transactions for all using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Level completion: own only
+create policy "level_completion_own"
+  on public.level_completion for all using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Activity log: own only
+create policy "activity_log_own"
+  on public.activity_log for all using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Badges: all read, own write
+create policy "badges_read"
+  on public.badges for select using (true);
+create policy "user_badges_own"
+  on public.user_badges for all using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Last challenge: own only
+create policy "last_challenge_own"
+  on public.last_challenge for all using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+```
+
+STEP D — Enable Realtime for leaderboard:
+  Supabase Dashboard → Database → Replication
+  Toggle ON: profiles table
+  This powers the live leaderboard updates.
+
+STEP E — Auth settings:
+  Authentication → Providers → Email: Enabled
+  Authentication → URL Configuration:
+    Site URL: http://localhost:5173 (dev)
+    After Vercel deploy: add https://yourapp.vercel.app
+
+STEP F — .env.local (create in project root):
+  VITE_SUPABASE_URL=https://xxxx.supabase.co
+  VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+STEP G — src/lib/supabase.ts:
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    }
+  }
+)
+```
+
+STEP H — Supabase helper functions (src/lib/db.ts):
+
+```typescript
+import { supabase } from './supabase'
+
+// Call on every login/app open to update streak
+export async function updateStreak(userId: string) {
+  await supabase.rpc('update_streak', { p_user_id: userId })
+}
+
+// Log any challenge action
+export async function logActivity(params: {
+  userId: string
+  module: 'shortcuts' | 'formatting'
+  levelName: string
+  challengeId: string
+  challengeTitle: string
+  action: 'started'|'completed'|'failed'|'retried'|'skipped'|'studied'
+  xpEarned?: number
+  score?: number
+  hintsUsed?: number
+  timeTakenSec?: number
+  comboAtTime?: number
+}) {
+  await supabase.from('activity_log').insert({
+    user_id:         params.userId,
+    module:          params.module,
+    level_name:      params.levelName,
+    challenge_id:    params.challengeId,
+    challenge_title: params.challengeTitle,
+    action:          params.action,
+    xp_earned:       params.xpEarned ?? 0,
+    score:           params.score,
+    hints_used:      params.hintsUsed ?? 0,
+    time_taken_sec:  params.timeTakenSec,
+    combo_at_time:   params.comboAtTime ?? 0,
+  })
+}
+
+// Award XP and log transaction
+export async function awardXP(params: {
+  userId: string
+  amount: number
+  source: string
+  sourceId?: string
+  module: string
+}) {
+  await supabase.from('xp_transactions').insert({
+    user_id:   params.userId,
+    amount:    params.amount,
+    source:    params.source,
+    source_id: params.sourceId,
+    module:    params.module,
+  })
+  // trigger on_xp_earned updates profiles.total_xp automatically
+}
+
+// Mark challenge complete, check level completion
+export async function completeChallenge(params: {
+  userId: string
+  module: 'shortcuts' | 'formatting'
+  levelName: string
+  challengeId: string
+  challengeTitle: string
+  xpEarned: number
+  score?: number
+  hintsUsed: number
+  timeTakenSec: number
+  combo: number
+  bestXP?: number
+}) {
+  const table = params.module === 'shortcuts'
+    ? 'shortcut_progress' : 'formatting_progress'
+
+  await supabase.from(table).upsert({
+    user_id:      params.userId,
+    [`${params.module === 'shortcuts' ? 'shortcut' : 'challenge'}_id`]:
+                  params.challengeId,
+    level_name:   params.levelName,
+    status:       'completed',
+    best_xp:      params.bestXP ?? params.xpEarned,
+    hints_used:   params.hintsUsed,
+    completed_at: new Date().toISOString(),
+    updated_at:   new Date().toISOString(),
+  }, { onConflict: 'user_id,' +
+    (params.module === 'shortcuts' ? 'shortcut_id' : 'challenge_id') })
+
+  await logActivity({
+    userId:         params.userId,
+    module:         params.module,
+    levelName:      params.levelName,
+    challengeId:    params.challengeId,
+    challengeTitle: params.challengeTitle,
+    action:         'completed',
+    xpEarned:       params.xpEarned,
+    score:          params.score,
+    hintsUsed:      params.hintsUsed,
+    timeTakenSec:   params.timeTakenSec,
+    comboAtTime:    params.combo,
+  })
+
+  await awardXP({
+    userId:   params.userId,
+    amount:   params.xpEarned,
+    source:   params.challengeTitle,
+    sourceId: params.challengeId,
+    module:   params.module,
+  })
+
+  await supabase.from('last_challenge').upsert({
+    user_id:         params.userId,
+    module:          params.module,
+    challenge_id:    params.challengeId,
+    challenge_title: params.challengeTitle,
+    level_name:      params.levelName,
+    xp_reward:       params.xpEarned,
+    last_seen:       new Date().toISOString(),
+  }, { onConflict: 'user_id' })
+}
+
+// Check and record level completion
+export async function checkLevelCompletion(params: {
+  userId: string
+  module: 'shortcuts' | 'formatting'
+  levelName: string
+  totalInLevel: number
+  hintsUsed: number
+  retries: number
+}) {
+  const table = params.module === 'shortcuts'
+    ? 'shortcut_progress' : 'formatting_progress'
+
+  const { count } = await supabase
+    .from(table)
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', params.userId)
+    .eq('level_name', params.levelName)
+    .eq('status', 'completed')
+
+  if ((count ?? 0) < params.totalInLevel) return false
+
+  const stars = params.hintsUsed === 0 && params.retries === 0 ? 3
+    : params.hintsUsed <= 3 && params.retries <= 1 ? 2 : 1
+
+  const bonusXP = {
+    rookie: 100, intermediate: 200, advanced: 300, expert: 500
+  }[params.levelName.toLowerCase()] ?? 100
+
+  await supabase.from('level_completion').upsert({
+    user_id:    params.userId,
+    module:     params.module,
+    level_name: params.levelName,
+    stars,
+    total_xp:   bonusXP,
+  }, { onConflict: 'user_id,module,level_name' })
+
+  await awardXP({
+    userId:   params.userId,
+    amount:   bonusXP,
+    source:   `${params.levelName} level complete`,
+    sourceId: `${params.module}_${params.levelName}`,
+    module:   'level_complete',
+  })
+
+  return true
+}
+
+// Fetch user's full progress state
+export async function fetchUserProgress(userId: string) {
+  const [
+    { data: profile },
+    { data: shortcuts },
+    { data: formatting },
+    { data: levelsDone },
+    { data: badges },
+    { data: lastChallenge },
+    { data: activity },
+  ] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', userId).single(),
+    supabase.from('shortcut_progress').select('*').eq('user_id', userId),
+    supabase.from('formatting_progress').select('*').eq('user_id', userId),
+    supabase.from('level_completion').select('*').eq('user_id', userId),
+    supabase.from('user_badges')
+      .select('*, badges(*)').eq('user_id', userId),
+    supabase.from('last_challenge').select('*').eq('user_id', userId).single(),
+    supabase.from('activity_log')
+      .select('*').eq('user_id', userId)
+      .order('created_at', { ascending: false }).limit(20),
+  ])
+
+  return { profile, shortcuts, formatting, levelsDone,
+           badges, lastChallenge, activity }
+}
+
+// Fetch leaderboard top 20
+export async function fetchLeaderboard() {
+  const { data } = await supabase
+    .from('leaderboard')
+    .select('*')
+    .limit(20)
+  return data
+}
+```
+
+STEP I — Call updateStreak on every app load:
+```typescript
+// In App.tsx or useAuth hook, after session is confirmed:
+useEffect(() => {
+  if (user) {
+    updateStreak(user.id)
+  }
+}, [user])
+```
+
+STEP J — Vercel deployment:
+
+vercel.json:
+```json
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+Commands:
+  npm run build  (verify no TypeScript errors)
+  git init
+  git add .
+  git commit -m "initial: GridCrafters v1"
+  git remote add origin https://github.com/yourusername/gridcrafters
+  git push -u origin main
+
+Then:
+  1. vercel.com → New Project → import GitHub repo
+  2. Framework: Vite (auto-detected)
+  3. Add env vars:
+     VITE_SUPABASE_URL      = your url
+     VITE_SUPABASE_ANON_KEY = your key
+  4. Deploy
+  5. Copy Vercel URL
+  6. Supabase → Auth → URL Configuration:
+     Site URL: https://gridcrafters.vercel.app
+     Redirect URLs: https://gridcrafters.vercel.app/**
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL RULES — MUST NOT VIOLATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1.  { capture: true } on ALL keydown listeners
+2.  selectedCells is always Set<string>, never a string
+3.  applyEffect iterates every cell in selectedCells
+4.  Alt sequences use sequence state machine, not chord
+5.  Alt+= is chord, not sequence
+6.  Formatting module uses useMultiShortcutDetection
+7.  Simulator is WHITE background inside dark shell
+8.  Every user action writes to Supabase immediately
+9.  Level completion writes to level_completion table
+10. Completed levels show ✓ tick, can be revisited
+11. Stars are calculated from hintsUsed + retries
+12. updateStreak called on every login
+13. All routes except / are protected behind auth
+14. RLS means users only ever see their own data
+15. Leaderboard view is readable by all authenticated users
+16. Geist font everywhere, DM Mono only for data
+17. No localStorage for authenticated users — Supabase is source of truth
+18. Activity log records every start, complete, fail, retry, skip, study
+19. Level completion XP bonus: Rookie+100, Inter+200, Adv+300, Expert+500
+20. Dashboard resume card reads from last_challenge table in Supabase

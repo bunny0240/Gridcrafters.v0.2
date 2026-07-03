@@ -1,0 +1,192 @@
+Fix these specific bugs in GridCrafters. No other changes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 1 — Ctrl+! KEY DETECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ctrl+! requires Shift+1. Browser intercepts Ctrl+Shift combos and
+switches tabs. Fix in useShortcutDetection and useMultiShortcutDetection:
+
+In the keydown handler, BEFORE any other logic:
+
+  const dangerousCombos = [
+    e.ctrlKey && e.shiftKey && ['Tab','PageDown','PageUp'].includes(e.key),
+    e.ctrlKey && e.key === 'Tab',
+    e.altKey && e.key === 'F4',
+    e.ctrlKey && ['w','W','t','T','n','N'].includes(e.key),
+  ]
+  if (dangerousCombos.some(Boolean)) {
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    // for tab-switch specifically, still process as shortcut below
+  }
+
+For Ctrl+! detection, user physically presses Ctrl+Shift+1.
+Browser fires e.key='!' when Shift+1 is held.
+buildChord must produce ['Ctrl','!'] not ['Ctrl','Shift','1']:
+
+  function buildChord(e: KeyboardEvent): string[] {
+    const key = normalizeKey(e)
+    // symbols produced by Shift+number already encode the shift
+    const isShiftSymbol = /^[!@#$%^&*()_+~`<>?:"{}|]$/.test(key)
+    const chord: string[] = []
+    if (e.ctrlKey) chord.push('Ctrl')
+    if (e.shiftKey && !isShiftSymbol) chord.push('Shift')
+    if (e.altKey) chord.push('Alt')
+    if (!['Ctrl','Shift','Alt'].includes(key)) chord.push(key)
+    return chord
+  }
+
+Shortcut data entry for Ctrl+!:
+  keys: ['Ctrl','!']   // matches what buildChord returns
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 2 — Ctrl+Shift+$ NOT WORKING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Same root cause as Fix 1. Ctrl+Shift+4 fires e.key='$'.
+buildChord (fixed above) now produces ['Ctrl','$'].
+
+Update shortcut data entry:
+  keys: ['Ctrl','$']   // was ['Ctrl','Shift','$']
+
+Apply same pattern to all Ctrl+Shift+symbol shortcuts:
+  Ctrl+Shift+@ -> keys: ['Ctrl','@']
+  Ctrl+Shift+# -> keys: ['Ctrl','#']
+  Ctrl+Shift+$ -> keys: ['Ctrl','$']
+  Ctrl+Shift+% -> keys: ['Ctrl','%']
+  Ctrl+Shift+~ -> keys: ['Ctrl','~']
+  Ctrl+Shift+& -> keys: ['Ctrl','&']
+
+Update KeyCap display to show the symbol directly:
+  Show [Ctrl] + [$]  not  [Ctrl] + [Shift] + [4]
+Add sub-hint below key caps: "Tip: $ is Shift+4 on your keyboard"
+Map: !=Shift+1  @=Shift+2  #=Shift+3  $=Shift+4  %=Shift+5
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 3 — ANSWERS VISIBLE IN QUESTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Intermediate and Expert level challenge screens, the shortcut
+keys are visible in the task card / scenario text before the user
+attempts them.
+
+In the challenge Phase 2 UI (the active attempt screen):
+- Remove shortcut keys from scenario text
+- Remove shortcut keys from task instruction text
+- Remove shortcut keys from the required shortcuts reference panel
+- The ONLY key display shown is the empty key cap placeholders
+  (unlit, no labels until pressed)
+
+The answer keys are shown ONLY in:
+- Phase 1 Study tab (cheat sheet)
+- Phase 3 Result screen (after correct or after 3 fails)
+
+Audit every string in formattingChallenges.ts and shortcuts.ts
+scenario/instruction fields — strip any mention of the key combo.
+
+Example fix:
+  WRONG: "Apply currency format using Ctrl+Shift+$"
+  RIGHT: "Format the selected cells as currency"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 4 — SIDEBAR XP LABEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current: shows "62% to Level 4" (progress toward NEXT level)
+Fix: show "62% complete" (progress within current level)
+
+The percentage shown should be:
+  const levelThresholds = [0, 500, 1500, 3000, 6000, 12000]
+  const currentFloor = levelThresholds[profile.level - 1]
+  const nextFloor    = levelThresholds[profile.level] ?? 12000
+  const pct = Math.round(
+    ((profile.total_xp - currentFloor) / (nextFloor - currentFloor)) * 100
+  )
+
+Label text: "{pct}% complete"
+Sub text:   "Level {profile.level} — {levelName}"
+Bar fill:   pct%
+
+Remove "X XP remaining to Level N" — replace with "{profile.total_xp} XP total"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 5 — EXPERT LEVEL ON DASHBOARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Shortcut Masters module card on dashboard currently shows only
+Rookie, Intermediate, Advanced level tags.
+
+Add Expert level tag and its progress:
+
+  const levels = [
+    { name: 'Rookie',       total: 18 },
+    { name: 'Intermediate', total: 17 },
+    { name: 'Advanced',     total: 18 },
+    { name: 'Expert',       total: 18 },
+  ]
+
+For each level, count completed shortcuts from shortcut_progress
+where level_name matches and status='completed'.
+
+Show all 4 as tags in the module card:
+  Completed level: green chip with checkmark
+  Active level:    purple chip "X/Y"
+  Locked level:    dim chip with lock
+
+Also update the module card overall progress bar to include Expert:
+  total = 18+17+18+18 = 71 shortcuts
+  completed = sum across all 4 levels
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 6 — SHORTCUT MASTER COMPLETION POPUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After checkShortcutMasterBadge() confirms the badge is awarded
+(all 3 levels complete — Rookie, Intermediate, Advanced),
+show a full-screen modal overlay:
+
+  Component: ShortcutMasterModal
+  Trigger: fires once, immediately after badge insert succeeds
+  Dismiss: click anywhere or [Continue] button
+
+  Layout (centered, dark overlay bg-black/70):
+  Card: bg #1a1a17, border gradient purple->blue, radius 16px,
+        padding 40px 48px, max-width 480px
+
+  Content:
+    Icon: large keyboard icon 64px in gradient circle
+    Heading: "Congratulations" — Geist 700 28px tracking -0.5px #f0ede6
+    Subheading: "You have become a Shortcut Master"
+                Geist 400 16px #c4bfb4
+    Divider line: 1px #3d3d38
+    Badge display: keyboard icon + "Shortcut Master" badge
+                   bg rgba(139,92,246,0.1) border rgba(139,92,246,0.2)
+                   Geist 600 14px #a78bfa
+    XP note: "+{bonusXP} XP awarded" — DM Mono 13px gradient text
+    Button: [Continue] — gradient bg, Geist 600 13px white, radius 7px
+
+  Do NOT show confetti or animations — keep it clean.
+  Store dismissal in localStorage key 'shortcut_master_modal_shown'
+  so it never shows again after first dismiss:
+    localStorage.setItem('shortcut_master_modal_shown', 'true')
+  Check this key before showing — if already set, skip the modal.
+
+Note: Expert level is NOT required for the badge or this modal.
+Badge and modal trigger when Rookie + Intermediate + Advanced are done.
+Expert is a bonus level shown on dashboard but not gating the badge.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. buildChord must never add 'Shift' when key is a shift-symbol char
+2. All Ctrl+symbol shortcut data entries use the symbol not 'Shift'
+3. Tab-switching browser shortcuts blocked via capture:true + preventDefault
+4. Challenge Phase 2 screen never shows the shortcut keys in any text
+5. Sidebar shows % complete within current level, not % to next level
+6. Dashboard module card shows all 4 levels including Expert
+7. Total shortcuts count for progress bar is 71 (18+17+18+18)
+8. Modal shown once only, gated by localStorage flag
+9. Badge requires Rookie + Intermediate + Advanced only, not Expert
+10. No other changes to existing functionality

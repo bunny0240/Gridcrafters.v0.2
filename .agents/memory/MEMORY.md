@@ -1,0 +1,3 @@
+- [ExcelSimulator nav effects](excel-nav-effects.md) — navigation effects (jump-*, select-all, fill-down) use activeCellRef and early-return before the setGrid block; also aliased by shortcut IDs (ctrl-right → jump-right-edge).
+- [Supabase retry pattern](supabase-retry.md) — withRetry accepts () => Promise<void>; callers must `if (error) throw error` inside async fn to trigger retries; Supabase builders are not plain Promises so type must be void.
+- [XP delta logic](xp-delta.md) — completeChallenge checks existing best_xp; first completion awards full XP; replay awards delta (newXP - existingBest) only; 80% floor via optional baseXP param.

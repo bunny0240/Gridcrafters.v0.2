@@ -1,0 +1,119 @@
+Create a comprehensive, exam-oriented study material PDF on the topic:
+[INSERT SUBJECT / TOPIC NAME]
+
+The material should be designed for:
+
+Deep conceptual understanding
+University/end-semester exam preparation
+Quick revision before exams
+Practical application in Indian context
+Requirements
+1. Complete Coverage
+Do NOT skip any important concept, definition, formula, theory, model, framework, process, or application.
+Cover beginner to advanced level concepts systematically.
+Include all important subtopics and edge cases relevant for exams.
+2. Exam-Oriented Structure
+
+For every chapter/topic include:
+
+Definitions
+Key concepts
+Important formulas
+Step-by-step explanations
+Frequently asked university exam questions
+Important theory answers
+Short notes
+2-mark, 5-mark, 10-mark and long-answer style content
+MCQs with answers
+Numerical problems (if applicable)
+Case-based questions
+Previous-year style questions
+Important keywords for writing in exams
+3. Indian Context Examples
+
+Add practical and relatable examples from:
+
+Indian companies
+Indian economy
+Indian government policies
+Indian startups
+Indian healthcare/education/business scenarios
+Indian consumer behavior
+Indian banking and finance
+Real Indian case studies wherever applicable
+
+Examples should help in:
+
+Understanding concepts
+Writing strong exam answers
+Improving retention
+4. Visual Learning
+
+Use as many visuals as possible:
+
+Flowcharts
+Tables
+Mind maps
+Comparison charts
+Infographics
+Process diagrams
+Architecture diagrams
+Concept maps
+Timelines
+Framework illustrations
+
+Every difficult concept should have a visual explanation.
+
+5. Memory Optimization
+
+Include:
+
+Mnemonics
+Tricks to remember concepts
+Summary tables
+One-page revision sheets
+Important exam tips
+Common mistakes students make
+“Most expected questions” section
+6. Answer Writing Focus
+
+For major questions:
+
+Provide ideal university-style answers
+Use headings, subheadings, bullet points
+Include introduction, body, conclusion format
+Highlight scoring keywords
+7. Formatting
+
+The PDF should:
+
+Be professionally formatted
+Use proper headings and spacing
+Have colored sections for readability
+Include page numbers
+Include table of contents
+Include chapter summaries
+Be easy to print and revise
+8. Output Requirements
+
+Generate:
+
+Full detailed study material
+Quick revision notes
+Important questions bank
+Formula sheet (if applicable)
+Final printable PDF
+9. Writing Style
+Very clear and easy to understand
+Detailed but concise
+Student-friendly
+Avoid unnecessary jargon
+Explain difficult concepts simply
+10. Special Instruction
+
+Assume the student wants to score:
+
+85%+ in university exams
+and also build practical understanding.
+
+Prioritize concepts frequently asked in Indian university examinations.

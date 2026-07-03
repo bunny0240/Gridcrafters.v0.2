@@ -1,0 +1,811 @@
+You are a senior React engineer building a complete gamified Excel learning
+platform called GridCrafters. Build ALL modules listed below. Two modules
+are full implementations. Two are placeholder shells.
+
+---
+
+## BRAND & VISUAL IDENTITY
+
+App name: GridCrafters
+Subtext: Made by Hyatt
+Logo mark: Warped perspective grid SVG (grid lines converging to vanishing
+  point, like a 3D plane) rendered above the text in sidebar
+
+Design: takeyouforward.io style, dark mode only, no toggle.
+Colors:
+  --bg:       #0A0A0A
+  --surface:  #111111
+  --surface2: #1A1A1A
+  --surface3: #222222
+  --border:   #2A2A2A
+  --text:     #ECECEC
+  --muted:    #6B7280
+  --blue:     #00B4D8
+  --green:    #4CAF50
+  --red:      #F44336
+  --blue-dim: rgba(0,180,216,0.08)
+  --green-dim:rgba(76,175,80,0.08)
+  --red-dim:  rgba(244,67,54,0.08)
+
+Font: system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
+Mono: 'JetBrains Mono','Fira Code',monospace (cells only)
+No mascots. No emoji illustrations. Icons: Lucide React only.
+
+Sidebar (fixed 240px, icon-only 56px tablet, drawer mobile):
+  Top: warped-grid SVG + "GridCrafters" bold + "Made by Hyatt" muted 11px
+  Nav items: active = 3px blue left border + blue text + blue-dim bg
+  Hover: bg #1A1A1A
+  Bottom: XP card — level name, XP bar gradient blue→green, streak count
+
+Cards: bg #111111, border 1px solid #2A2A2A, border-radius 8px
+Buttons:
+  Primary: bg #00B4D8 text white hover #0096B4 rounded 6px
+  Success: bg #4CAF50 hover #3D8B40
+  Danger:  bg #F44336 hover #C62828
+  Ghost:   border 1px solid #2A2A2A text #ECECEC hover bg #1A1A1A
+XP/progress bars: gradient #00B4D8→#4CAF50, height 6px, radius 99px
+
+---
+
+## MODULES
+
+ACTIVE (full build):
+  1. Shortcut Masters   /shortcuts
+  2. Formatting Kings   /formatting
+
+PLACEHOLDER SHELLS (coming soon):
+  3. Real Analysts      /analyst   — "Coming Soon" page, 0% progress
+  4. Leaderboard        /leaderboard — mock table, "Coming Soon"
+
+ALWAYS REAL:
+  5. Dashboard          /dashboard  — home hub
+  6. Profile            /profile    — stats + badges
+
+---
+
+## MODULE 1: SHORTCUT MASTERS
+
+### Structure
+
+Two sections per visit:
+  A. STUDY MODE — learn the cheat sheet before attempting
+  B. CHALLENGE MODE — perform on live Excel playground, no answers shown
+
+Navigation between them:
+  [Study] tab and [Challenge] tab at top of module.
+  User must complete Study for a level before Challenge unlocks for that level.
+  "Mark as Studied" button in Study tab unlocks the Challenge tab.
+
+### Levels
+
+LEVEL 1 — Rookie       (Basic shortcuts from PDF)
+LEVEL 2 — Intermediate (Formatting shortcuts from PDF)
+LEVEL 3 — Advanced     (Insert, Layout, Data & Formula shortcuts from PDF)
+
+Each level: Study section + Challenge section.
+Unlock rule: complete 70% of challenges in current level to unlock next.
+
+---
+
+### SHORTCUT DATA (from ExcelChamps PDF — use ALL of these)
+
+```typescript
+const SHORTCUTS = {
+  rookie: [
+    // Basic Keys from PDF
+    { id:'ctrl-up',    keys:['Ctrl','↑'],         label:'Move to top end',        type:'chord', baseXP:15 },
+    { id:'ctrl-down',  keys:['Ctrl','↓'],         label:'Move to bottom end',     type:'chord', baseXP:15 },
+    { id:'ctrl-right', keys:['Ctrl','→'],         label:'Move to right end',      type:'chord', baseXP:15 },
+    { id:'ctrl-left',  keys:['Ctrl','←'],         label:'Move to left end',       type:'chord', baseXP:15 },
+    { id:'ctrl-c',     keys:['Ctrl','C'],          label:'Copy',                   type:'chord', baseXP:15 },
+    { id:'ctrl-v',     keys:['Ctrl','V'],          label:'Paste',                  type:'chord', baseXP:15 },
+    { id:'ctrl-x',     keys:['Ctrl','X'],          label:'Cut',                    type:'chord', baseXP:15 },
+    { id:'ctrl-s',     keys:['Ctrl','S'],          label:'Save',                   type:'chord', baseXP:20 },
+    { id:'ctrl-p',     keys:['Ctrl','P'],          label:'Print',                  type:'chord', baseXP:15 },
+    { id:'ctrl-f4',    keys:['Ctrl','F4'],         label:'Save As',                type:'chord', baseXP:20 },
+    { id:'ctrl-z',     keys:['Ctrl','Z'],          label:'Undo last action',       type:'chord', baseXP:15 },
+    { id:'ctrl-y',     keys:['Ctrl','Y'],          label:'Redo last action',       type:'chord', baseXP:15 },
+    { id:'ctrl-a',     keys:['Ctrl','A'],          label:'Select all',             type:'chord', baseXP:15 },
+    { id:'ctrl-space', keys:['Ctrl','Space'],      label:'Select entire column',   type:'chord', baseXP:20 },
+    { id:'shift-space',keys:['Shift','Space'],     label:'Select entire row',      type:'chord', baseXP:20 },
+    { id:'delete',     keys:['Delete'],            label:'Delete cell content',    type:'chord', baseXP:10 },
+    { id:'f2',         keys:['F2'],                label:'Edit cell',              type:'chord', baseXP:15 },
+    { id:'esc',        keys:['Esc'],               label:'Close edit mode',        type:'chord', baseXP:10 },
+  ],
+  intermediate: [
+    // Formatting Keys from PDF
+    { id:'ctrl-b',           keys:['Ctrl','B'],              label:'Bold',                      type:'chord',    baseXP:20 },
+    { id:'ctrl-i',           keys:['Ctrl','I'],              label:'Italic',                    type:'chord',    baseXP:20 },
+    { id:'ctrl-u',           keys:['Ctrl','U'],              label:'Underline',                 type:'chord',    baseXP:20 },
+    { id:'ctrl-exclaim',     keys:['Ctrl','!'],              label:'Open format menu',          type:'chord',    baseXP:25 },
+    { id:'ctrl-shift-at',    keys:['Ctrl','Shift','@'],      label:'Format as time value',      type:'chord',    baseXP:25 },
+    { id:'ctrl-shift-hash',  keys:['Ctrl','Shift','#'],      label:'Format as date value',      type:'chord',    baseXP:25 },
+    { id:'ctrl-shift-dollar',keys:['Ctrl','Shift','$'],      label:'Format as currency',        type:'chord',    baseXP:25 },
+    { id:'ctrl-shift-pct',   keys:['Ctrl','Shift','%'],      label:'Format as percentage',      type:'chord',    baseXP:25 },
+    { id:'alt-h-o-i',        keys:['Alt','H','O','I'],       label:'Adjust cell width',         type:'sequence', baseXP:35 },
+    { id:'alt-h-b-a',        keys:['Alt','H','B','A'],       label:'Apply border',              type:'sequence', baseXP:30 },
+    { id:'alt-h-f-c',        keys:['Alt','H','F','C'],       label:'Change font color',         type:'sequence', baseXP:30 },
+    { id:'alt-h-h',          keys:['Alt','H','H'],           label:'Change cell color',         type:'sequence', baseXP:30 },
+    { id:'alt-h-a-c',        keys:['Alt','H','A','C'],       label:'Align text to center',      type:'sequence', baseXP:30 },
+    { id:'alt-h-m-c',        keys:['Alt','H','M','C'],       label:'Merge cell',                type:'sequence', baseXP:35 },
+    { id:'alt-h-w',          keys:['Alt','H','W'],           label:'Wrap text',                 type:'sequence', baseXP:25 },
+    { id:'alt-h-l-n',        keys:['Alt','H','L','N'],       label:'Add conditional formatting',type:'sequence', baseXP:40 },
+    { id:'alt-h-t',          keys:['Alt','H','T'],           label:'Format as table',           type:'sequence', baseXP:35 },
+  ],
+  advanced: [
+    // Insert, Layout, Data & Formulas from PDF
+    { id:'shift-f3',    keys:['Shift','F3'],         label:'Insert function',          type:'chord',    baseXP:35 },
+    { id:'alt-equals',  keys:['Alt','='],             label:'Auto sum',                 type:'chord',    baseXP:35 },
+    { id:'alt-n-v',     keys:['Alt','N','V'],         label:'Insert pivot table',       type:'sequence', baseXP:40 },
+    { id:'alt-n-t',     keys:['Alt','N','T'],         label:'Insert table',             type:'sequence', baseXP:35 },
+    { id:'alt-n-i',     keys:['Alt','N','I'],         label:'Insert hyperlink',         type:'sequence', baseXP:30 },
+    { id:'alt-w-v-f',   keys:['Alt','W','V','F'],     label:'Hide/unhide formula bar',  type:'sequence', baseXP:35 },
+    { id:'alt-w-f-f',   keys:['Alt','W','F','F'],     label:'Freeze pane',              type:'sequence', baseXP:40 },
+    { id:'alt-d-f-f',   keys:['Alt','D','F','F'],     label:'Add filters',              type:'sequence', baseXP:35 },
+    { id:'alt-a-v-v',   keys:['Alt','A','V','V'],     label:'Insert data validation',   type:'sequence', baseXP:40 },
+    { id:'alt-a-m',     keys:['Alt','A','M'],         label:'Remove duplicates',        type:'sequence', baseXP:35 },
+    { id:'alt-a-r-a',   keys:['Alt','A','R','A'],     label:'Refresh all',              type:'sequence', baseXP:30 },
+    { id:'alt-a-e',     keys:['Alt','A','E'],         label:'Text to column',           type:'sequence', baseXP:35 },
+    { id:'alt-a-g',     keys:['Alt','A','G'],         label:'Group rows & columns',     type:'sequence', baseXP:35 },
+    { id:'alt-a-u',     keys:['Alt','A','U'],         label:'Ungroup rows & columns',   type:'sequence', baseXP:35 },
+    { id:'alt-a-s-s',   keys:['Alt','A','S','S'],     label:'Sort',                     type:'sequence', baseXP:30 },
+    { id:'alt-m-n',     keys:['Alt','M','N'],         label:'Name manager',             type:'sequence', baseXP:40 },
+    { id:'alt-m-r',     keys:['Alt','M','R'],         label:'Recently used functions',  type:'sequence', baseXP:35 },
+    { id:'alt-m-i',     keys:['Alt','M','I'],         label:'Financial functions',      type:'sequence', baseXP:40 },
+  ]
+}
+```
+
+---
+
+### SECTION A: STUDY MODE (Cheat Sheet)
+
+Full reference table for the current level. Always accessible.
+
+Layout:
+┌─────────────────────────────────────────────────────────────┐
+│ SHORTCUT MASTERS          [Study] [Challenge]               │
+│ Level: Rookie                                               │
+├─────────────────────────────────────────────────────────────┤
+│ CHEAT SHEET — Rookie Level                                  │
+│ "Learn these before attempting the challenge"               │
+│                                                             │
+│ ┌─────────────────────────────────────────────────────┐     │
+│ │ Shortcut      │ Action             │ Memory Tip      │     │
+│ │ Ctrl + ↑      │ Move to top end    │ Arrow = direction│    │
+│ │ Ctrl + ↓      │ Move to bottom end │ Arrow = direction│    │
+│ │ Ctrl + C      │ Copy               │ C = Copy        │     │
+│ │ Ctrl + V      │ Paste              │ V = right of C  │     │
+│ │ ...           │ ...                │ ...             │     │
+│ └─────────────────────────────────────────────────────┘     │
+│                                                             │
+│ KEY CAPS PREVIEW (interactive — hover any row to see keys): │
+│  [Ctrl] + [C]  →  Copy                                      │
+│                                                             │
+│ [✓ I've Studied This — Unlock Challenge]   (blue button)   │
+└─────────────────────────────────────────────────────────────┘
+
+Table columns: Shortcut | Action | Type (chord/sequence) | XP | Status
+Sequence shortcuts show note: "Press one key at a time"
+Searchable. Filterable by type.
+Studied state saved to localStorage.
+
+---
+
+### SECTION B: CHALLENGE MODE (Excel Playground)
+
+One challenge per shortcut in the level. Presented one at a time.
+┌─────────────────────────────────────────────────────────────┐
+│ Challenge 3/18 · Rookie    Combo ×2    [Hint −75%]          │
+│ ████████████████░░░░  Timer 7.4s  (green→yellow→red)        │
+├─────────────────────────────────────────────────────────────┤
+│ SCENARIO:                                                   │
+│ "Your manager shared this sales data. She needs you to      │
+│  copy row 4 so it can be pasted into the summary sheet."   │
+│                                                             │
+│ TASK: Copy the selected cells using only the keyboard.      │
+│                                                             │
+│ ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  EXCEL PLAYGROUND (white bg, exact Excel look):             │
+│  [Full simulator — cells pre-selected per challenge]        │
+│  [Effect fires visually on correct shortcut]                │
+│                                                             │
+│ ─────────────────────────────────────────────────────────  │
+│                                                             │
+│ KEY DISPLAY:                                                │
+│  chord:    [Ctrl] + [C]         (+ separator)               │
+│  sequence: [Alt] → [H] → [M] → [C]  (→ separator)          │
+│  Next expected key in sequence: gold border                 │
+│  Pressed keys: green checkmark                              │
+│  Wrong keys: red flash                                      │
+│                                                             │
+│ Answer NEVER shown during attempt.                          │
+│ 3 wrong → [Try Again — 50% XP max] appears.                 │
+└─────────────────────────────────────────────────────────────┘
+
+Challenge scenarios per shortcut (examples — generate for all):
+```typescript
+const CHALLENGE_SCENARIOS = {
+  'ctrl-c': {
+    scenario: 'Your manager needs row 4 duplicated in the summary section.',
+    instruction: 'Copy the selected cells using only the keyboard',
+    preSelectedCells: ['A4','B4','C4','D4','E4'],
+    expectedEffect: 'copy-marquee'
+  },
+  'ctrl-b': {
+    scenario: 'The header row needs to stand out from the data.',
+    instruction: 'Bold the selected header cells',
+    preSelectedCells: ['A1','B1','C1','D1','E1'],
+    expectedEffect: 'bold'
+  },
+  'ctrl-shift-dollar': {
+    scenario: 'Q1 figures look like plain numbers. Format them as currency.',
+    instruction: 'Apply currency format to the selected cells',
+    preSelectedCells: ['B2','B3','B4','B5'],
+    expectedEffect: 'currency-format'
+  },
+  'alt-h-m-c': {
+    scenario: 'The report title should span all five columns.',
+    instruction: 'Merge and center the title — press Alt, then H, then M, then C',
+    preSelectedCells: ['A1','B1','C1','D1','E1'],
+    expectedEffect: 'merge-center'
+  },
+  'ctrl-space': {
+    scenario: 'You need to select the entire Q1 column to format all values.',
+    instruction: 'Select the entire column using only the keyboard',
+    preSelectedCells: ['B3'],
+    expectedEffect: 'select-column'
+  },
+  // Generate similar scenarios for every shortcut in the data above
+}
+```
+
+---
+
+## MODULE 2: FORMATTING KINGS
+
+### Structure
+
+Same two-tab layout as Shortcut Masters:
+  A. STUDY MODE — formatting techniques reference
+  B. CHALLENGE MODE — match target format using keyboard shortcuts only
+
+### Levels
+
+LEVEL 1 — Basic Formatting    (bold, italic, underline, alignment, currency, %)
+LEVEL 2 — Table Formatting    (borders, merge, wrap, cell color, font color)
+LEVEL 3 — Advanced Formatting (conditional formatting, table styles, number formats)
+
+### SECTION A: STUDY MODE
+
+Reference cards per technique. Each card shows:
+- Technique name
+- Keyboard shortcut to achieve it (from PDF shortcut list)
+- Before / After preview (mini Excel grid, loops)
+- When to use tip
+┌─────────────────────────────────────────────────────────────┐
+│ FORMATTING KINGS              [Study] [Challenge]           │
+│ Level 1 — Basic Formatting                                  │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│ ┌──────────────────┐  ┌──────────────────┐                 │
+│ │ BOLD             │  │ CURRENCY FORMAT  │                 │
+│ │ Shortcut: Ctrl+B │  │ Shortcut:        │                 │
+│ │ BEFORE | AFTER   │  │ Ctrl+Shift+$     │                 │
+│ │ text   │ text    │  │ 124 → $124       │                 │
+│ │        │ (bold)  │  │                  │                 │
+│ │ Use: headers,    │  │ Use: financial   │                 │
+│ │      totals      │  │      data        │                 │
+│ └──────────────────┘  └──────────────────┘                 │
+│                                                             │
+│ [✓ Mark as Studied — Unlock Challenge]                      │
+└─────────────────────────────────────────────────────────────┘
+
+### SECTION B: CHALLENGE MODE
+
+Side-by-side layout: TARGET (read-only) | YOUR WORK (editable).
+User must match target using keyboard shortcuts only — no mouse formatting.
+All ribbon buttons disabled. Only keyboard input accepted.
+┌──────────────────────────────────────────────────────────────┐
+│ Formatting Challenge 2/8      Score: 25/100    [Hint −75%]   │
+├──────────────────────────────────────────────────────────────┤
+│ TASK: "Format your spreadsheet to match the target exactly"  │
+│                                                              │
+│ REQUIRED SHORTCUTS:                                          │
+│ • Bold headers: Ctrl+B                                       │
+│ • Currency format: Ctrl+Shift+$                              │
+│ • Center align: Alt+H+A+C                                    │
+│ (shown as reference — but user must recall and press them)   │
+│                                                              │
+├────────────────────────┬─────────────────────────────────────┤
+│  🎯 TARGET (locked)    │  ✏️ YOUR WORK (editable)            │
+│  [Read-only simulator] │  [Full editable simulator]          │
+│  Correct format shown  │  Starts as plain unformatted data   │
+│                        │  Keyboard shortcuts apply here      │
+├────────────────────────┴─────────────────────────────────────┤
+│ LIVE SCORE:                                                  │
+│ ✓ Bold headers      25/25  ████████████                      │
+│ ✗ Currency format    0/30  ░░░░░░░░░░░░                      │
+│ ✗ Center alignment   0/25  ░░░░░░░░░░░░                      │
+│ ✗ Border applied     0/20  ░░░░░░░░░░░░                      │
+│                                                              │
+│ Total: 25/100   [Check Score]  [Reset]                       │
+└──────────────────────────────────────────────────────────────┘
+
+Formatting challenges (8 total):
+```typescript
+const FORMATTING_CHALLENGES = [
+  {
+    id: 'f1', level: 1, title: 'Sales Report Basics', xp: 60,
+    requiredShortcuts: ['ctrl-b','ctrl-shift-dollar','alt-h-a-c'],
+    target: { A1:'bold+center', B1:'bold+center', 'B2:B5':'currency' },
+    scoring: { bold:25, currency:30, center:25, border:20 }
+  },
+  {
+    id: 'f2', level: 1, title: 'Financial Statement', xp: 75,
+    requiredShortcuts: ['ctrl-b','ctrl-shift-dollar','ctrl-shift-pct'],
+    target: { A1:'bold', 'B2:B6':'currency', 'C2:C6':'percent' },
+    scoring: { bold:20, currency:35, percent:25, underline:20 }
+  },
+  {
+    id: 'f3', level: 2, title: 'Table with Borders', xp: 80,
+    requiredShortcuts: ['alt-h-b-a','alt-h-m-c','ctrl-b'],
+    target: { 'A1:E1':'merged+bold', 'A2:E6':'all-borders' },
+    scoring: { merge:30, borders:35, bold:20, wrap:15 }
+  },
+  {
+    id: 'f4', level: 2, title: 'Color-coded Report', xp: 90,
+    requiredShortcuts: ['alt-h-h','alt-h-f-c','ctrl-b'],
+    target: { A1:'bg-blue+white-text', 'A2:A5':'bg-lightgray' },
+    scoring: { bgColor:30, fontColor:25, bold:25, align:20 }
+  },
+  {
+    id: 'f5', level: 2, title: 'Invoice Template', xp: 90,
+    requiredShortcuts: ['alt-h-m-c','alt-h-b-a','ctrl-shift-dollar'],
+    target: { 'A1:E1':'merged', 'E6':'currency+bold+border-top' },
+    scoring: { merge:25, currency:30, borders:25, bold:20 }
+  },
+  {
+    id: 'f6', level: 3, title: 'Conditional Formatting', xp: 100,
+    requiredShortcuts: ['alt-h-l-n','ctrl-shift-pct'],
+    target: { 'B2:B5':'conditional-green-red', 'C2:C5':'percent' },
+    scoring: { conditional:40, percent:30, color:30 }
+  },
+  {
+    id: 'f7', level: 3, title: 'Table Style', xp: 100,
+    requiredShortcuts: ['alt-h-t','ctrl-b'],
+    target: { 'A1:E6':'table-style-banded' },
+    scoring: { tableStyle:50, bold:25, align:25 }
+  },
+  {
+    id: 'f8', level: 3, title: 'Executive Report', xp: 150,
+    requiredShortcuts: ['ctrl-b','ctrl-shift-dollar','alt-h-m-c',
+                        'alt-h-b-a','ctrl-shift-pct','alt-h-l-n'],
+    target: 'all techniques combined',
+    scoring: { bold:15, currency:15, merge:15, borders:15, percent:15, conditional:25 }
+  }
+]
+```
+
+---
+
+## EXCEL SIMULATOR (shared by both modules)
+
+### White background inside dark shell — exact Excel look
+TITLE BAR:
+GridCrafters Simulator — Sales_Report.xlsx    💾*
+(* disappears after Ctrl+S challenge)
+SIMPLIFIED RIBBON (visual only, shows active tool glow):
+[File] [Home] [Insert] [Formulas] [Data] [View]
+Home row: [B][I][U̲] | [$][%][,] | [≡][≡][≡] | [Merge▼] | [Border▼]
+Relevant button glows blue for 600ms after correct shortcut
+FORMULA BAR:
+[A1 ▼]  [fx]  [content of active cell]
+COLUMN HEADERS: A B C D E F
+ROW NUMBERS:    1 2 3 4 5 6
+DATASET:
+  Row1: Region  | Q1(k)∣Q2(k) | Q2(
+k)∣Q2(k) | Q3($k) | Total
+  Row2: North   | 124    | 156    | 182    | 462
+  Row3: South   | 98     | 112    | 134    | 344
+  Row4: East    | 167    | 198    | 221    | 586
+  Row5: West    | 89     | 104    | 128    | 321
+  Row6: TOTAL   | 478    | 570    | 665    | 1713
+SHEET TABS: [Sheet1] [Summary] [Raw Data] [+]
+STATUS BAR: Ready | Sum: N | Count: N | Average: N
+
+Cell CSS (inside simulator — white area, no dark theme here):
+```css
+.excel-cell {
+  border-right: 1px solid #D0D7DE;
+  border-bottom: 1px solid #D0D7DE;
+  font-family: 'Calibri','Segoe UI',sans-serif;
+  font-size: 11pt; padding: 1px 4px;
+  min-width: 80px; height: 21px;
+  white-space: nowrap; overflow: hidden;
+  background: white; color: #000; cursor: cell;
+  user-select: none;
+}
+.cell-active  { outline: 2px solid #1F6FEB; outline-offset: -2px; }
+.cell-range   { background: rgba(31,111,235,0.12) !important; }
+.cell-marquee { outline: 2px dashed #1F6FEB; outline-offset: -2px;
+                animation: ants 0.5s linear infinite; }
+@keyframes ants { to { outline-offset: -4px; } }
+.col-header, .row-num {
+  background: #F2F2F2; border: 1px solid #D0D7DE;
+  font-size:10pt; color:#444; font-weight:500; text-align:center;
+}
+.col-header.hl, .row-num.hl { background: #CFD8E8; color: #1F3D6E; }
+/* zero border-radius everywhere in the grid */
+```
+
+### Multi-cell selection (CRITICAL — must work correctly)
+
+```typescript
+// Selection is a Set<string>, never a single string
+const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set(['A1']))
+const [activeCell, setActiveCell]       = useState<string>('A1')
+const [dragStart, setDragStart]         = useState<string|null>(null)
+const [dragging, setDragging]           = useState(false)
+
+const COLS = ['A','B','C','D','E','F']
+
+function colIdx(c:string)  { return COLS.indexOf(c) }
+function parseCell(id:string) {
+  return { col: id.match(/[A-Z]+/)?.[0]??'A',
+           row: parseInt(id.match(/\d+/)?.[0]??'1') }
+}
+
+function expandRange(a:string, b:string): Set<string> {
+  const {col:c1,row:r1}=parseCell(a), {col:c2,row:r2}=parseCell(b)
+  const cMin=Math.min(colIdx(c1),colIdx(c2)), cMax=Math.max(colIdx(c1),colIdx(c2))
+  const rMin=Math.min(r1,r2),                 rMax=Math.max(r1,r2)
+  const s=new Set<string>()
+  for(let c=cMin;c<=cMax;c++)
+    for(let r=rMin;r<=rMax;r++)
+      s.add(COLS[c]+r)
+  return s
+}
+
+// Mouse handlers on each cell
+onMouseDown={(id) => {
+  setDragStart(id); setActiveCell(id)
+  setSelectedCells(new Set([id])); setDragging(true)
+}}
+onMouseEnter={(id) => {
+  if(!dragging||!dragStart) return
+  setSelectedCells(expandRange(dragStart,id))
+}}
+// Global mouseup: setDragging(false)
+
+// Load preSelectedCells on challenge mount
+useEffect(() => {
+  if(!challenge.preSelectedCells.length) return
+  setActiveCell(challenge.preSelectedCells[0])
+  setSelectedCells(new Set(challenge.preSelectedCells))
+}, [challenge.id])
+
+// Cell class
+function cellCls(id:string) {
+  if(id===activeCell)         return 'cell-active'
+  if(selectedCells.has(id))   return 'cell-range'
+  if(grid[id]?.copyMarquee)   return 'cell-marquee'
+  return ''
+}
+```
+
+### Effect application (iterates ALL selected cells — not just active)
+
+```typescript
+function applyEffect(effect:string) {
+  setGrid(prev => {
+    const next = {...prev}
+    selectedCells.forEach(id => {
+      if(!next[id]) return
+      const c = next[id]
+      switch(effect) {
+        case 'bold':
+          next[id]={...c, fontWeight: c.fontWeight==='bold'?'normal':'bold'}; break
+        case 'italic':
+          next[id]={...c, fontStyle: c.fontStyle==='italic'?'normal':'italic'}; break
+        case 'underline':
+          next[id]={...c, textDecoration: c.textDecoration==='underline'?'none':'underline'}; break
+        case 'currency-format': {
+          const n=parseFloat(c.rawValue??c.value??'0')
+          next[id]={...c, value: isNaN(n)?c.value:
+            new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',
+              minimumFractionDigits:0}).format(n)}; break }
+        case 'percent-format': {
+          const n=parseFloat(c.rawValue??c.value??'0')
+          next[id]={...c, value: isNaN(n)?c.value:(n*100).toFixed(1)+'%'}; break }
+        case 'date-format':
+          next[id]={...c, value:'25-May-26'}; break
+        case 'center-align':
+          next[id]={...c, textAlign:'center'}; break
+        case 'copy-marquee':
+          next[id]={...c, copyMarquee:true}; break
+        case 'select-column': {
+          const {col}=parseCell(id)
+          Object.keys(next).filter(k=>k.startsWith(col))
+            .forEach(k=>{next[k]={...next[k],inRange:true}}); break }
+        case 'select-row': {
+          const {row}=parseCell(id)
+          Object.keys(next).filter(k=>k.endsWith(String(row)))
+            .forEach(k=>{next[k]={...next[k],inRange:true}}); break }
+        case 'merge-center':
+          next[id]={...c, merged:true, textAlign:'center'}; break
+        case 'all-borders':
+          next[id]={...c, allBorders:true}; break
+        case 'outer-border':
+          next[id]={...c, outerBorder:true}; break
+        case 'wrap-text':
+          next[id]={...c, whiteSpace:'normal'}; break
+        case 'conditional-format':
+          next[id]={...c, bgColor: parseFloat(c.rawValue??'0')>150?'#c8f7c5':'#ffc8c8'}; break
+        case 'fill-down': {
+          const ids=[...selectedCells].sort(), src=next[ids[0]]
+          ids.slice(1).forEach(k=>{next[k]={...next[k],...src}}); break }
+        case 'fill-right': {
+          const ids=[...selectedCells].sort(), src=next[ids[0]]
+          ids.slice(1).forEach(k=>{next[k]={...next[k],...src}}); break }
+        case 'autosum':
+          next[id]={...c,value:'=SUM()',formula:true,computed:'1713'}; break
+        case 'undo-revert':
+          next[id]={...c,fontWeight:'normal',fontStyle:'normal',
+            textDecoration:'none',bgColor:'white'}; break
+        case 'general-format':
+          next[id]={...c,value:c.rawValue??c.value,
+            fontWeight:'normal',fontStyle:'normal',textDecoration:'none'}; break
+      }
+    })
+    return next
+  })
+}
+
+function validateEffect(effect:string): boolean {
+  const cells=[...selectedCells]
+  if(!cells.length) return false
+  return cells.every(id => {
+    const c=grid[id]; if(!c) return false
+    switch(effect){
+      case 'bold':            return c.fontWeight==='bold'
+      case 'italic':          return c.fontStyle==='italic'
+      case 'underline':       return c.textDecoration==='underline'
+      case 'currency-format': return c.value?.includes('$')??false
+      case 'percent-format':  return c.value?.includes('%')??false
+      case 'center-align':    return c.textAlign==='center'
+      case 'copy-marquee':    return c.copyMarquee===true
+      case 'merge-center':    return c.merged===true
+      case 'all-borders':     return c.allBorders===true
+      default:                return true
+    }
+  })
+}
+
+// Cell render — apply ALL style properties per cell
+function cellStyle(c:CellState): React.CSSProperties {
+  return {
+    fontWeight:      c.fontWeight     ?? 'normal',
+    fontStyle:       c.fontStyle      ?? 'normal',
+    textDecoration:  c.textDecoration ?? 'none',
+    textAlign:       c.textAlign      ?? 'left',
+    color:           c.color          ?? '#000',
+    backgroundColor: c.bgColor        ?? 'white',
+    whiteSpace:      c.whiteSpace     ?? 'nowrap',
+    border: c.allBorders ? '1px solid #000'
+          : c.outerBorder ? '2px solid #000' : undefined,
+  }
+}
+```
+
+---
+
+## ALT KEY FIX (required, no exceptions)
+
+```typescript
+useEffect(() => {
+  const handler = (e:KeyboardEvent) => {
+    if(e.altKey){
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation()
+    }
+    const ctrlBlock=['b','i','u','s','a','h','d','r','g','k','f','p','n','w','t']
+    if(e.ctrlKey && ctrlBlock.includes(e.key.toLowerCase())) e.preventDefault()
+    if(/^F\d+$/.test(e.key)) e.preventDefault()
+    processInput(e)
+  }
+  document.addEventListener('keydown', handler, { capture:true })
+  return () => document.removeEventListener('keydown', handler, { capture:true })
+}, [currentChallenge, selectedCells, grid])
+
+function isSequential(keys:string[]) {
+  return keys.includes('Alt') &&
+    keys.filter(k=>!['Ctrl','Shift','Alt'].includes(k)).length > 1
+}
+
+const seqBuf = useRef<string[]>([])
+const seqTimer = useRef<ReturnType<typeof setTimeout>>()
+
+function processInput(e:KeyboardEvent) {
+  const key = normalizeKey(e)
+  if(['Ctrl','Shift','Alt'].includes(key)) return
+  const {keys} = currentChallenge
+  if(isSequential(keys)){
+    clearTimeout(seqTimer.current)
+    seqTimer.current = setTimeout(()=>{ seqBuf.current=[] }, 2000)
+    seqBuf.current.push(key)
+    const partial = keys.slice(0,seqBuf.current.length)
+      .every((k,i)=>k.toLowerCase()===seqBuf.current[i]?.toLowerCase())
+    if(!partial){ triggerWrong(); seqBuf.current=[]; return }
+    if(seqBuf.current.length===keys.length){
+      applyEffect(currentChallenge.expectedEffect||currentChallenge.id)
+      if(validateEffect(currentChallenge.expectedEffect)) triggerCorrect()
+      seqBuf.current=[]
+    }
+  } else {
+    const pressed = buildChord(e)
+    if(arraysMatch(pressed,keys)){
+      applyEffect(currentChallenge.expectedEffect||currentChallenge.id)
+      if(validateEffect(currentChallenge.expectedEffect)) triggerCorrect()
+    } else if(pressed.length>=keys.length) triggerWrong()
+  }
+}
+
+function normalizeKey(e:KeyboardEvent):string {
+  const m:Record<string,string>={
+    'Control':'Ctrl','Shift':'Shift','Alt':'Alt',' ':'Space',
+    '`':'`','=':'=','+':'+','-':'-','~':'~','$':'$','%':'%','#':'#',
+    '&':'&','!':'!','@':'@','ArrowRight':'→','ArrowLeft':'←',
+    'ArrowUp':'↑','ArrowDown':'↓','PageDown':'PageDown','PageUp':'PageUp',
+    'Home':'Home','End':'End','Enter':'Enter','Escape':'Esc',
+    'Delete':'Delete','Backspace':'Backspace'
+  }
+  if(m[e.key]) return m[e.key]
+  if(e.key.length===1) return e.key.toUpperCase()
+  if(/^F\d+$/.test(e.key)) return e.key
+  return e.key
+}
+function buildChord(e:KeyboardEvent):string[]{
+  const k:string[]=[]
+  if(e.ctrlKey) k.push('Ctrl')
+  if(e.shiftKey) k.push('Shift')
+  if(e.altKey) k.push('Alt')
+  const n=normalizeKey(e)
+  if(!['Ctrl','Shift','Alt'].includes(n)) k.push(n)
+  return k
+}
+function arraysMatch(a:string[],b:string[]):boolean{
+  return a.length===b.length&&a.every((v,i)=>v.toLowerCase()===b[i].toLowerCase())
+}
+```
+
+Key cap style:
+```css
+.key-cap {
+  background: linear-gradient(180deg,#2A2A3E,#1A1A2E);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-bottom: 3px solid rgba(0,0,0,0.5);
+  border-radius: 6px; min-width: 48px; height: 48px;
+  font-family: 'JetBrains Mono',monospace; font-size:14px; font-weight:600;
+  display:flex; align-items:center; justify-content:center; user-select:none;
+}
+.key-cap.pressed { transform:translateY(2px); border-bottom:1px solid rgba(0,0,0,0.5); background:linear-gradient(180deg,#4A3FBF,#3A2FAF); }
+.key-cap.active  { border-color:#FFD700; box-shadow:0 0 6px rgba(255,215,0,0.4); }
+.key-cap.waiting { opacity:0.35; }
+.key-cap.correct { background:linear-gradient(180deg,#2d7a3a,#1f5e2b); border-color:#4CAF50; }
+.key-cap.wrong   { background:linear-gradient(180deg,#7a2d2d,#5e1f1f); border-color:#F44336; }
+```
+
+Chord display: [Ctrl] + [B]  (+ between keys)
+Sequence display: [Alt] → [H] → [M] → [C]  (→ between keys, gold border on next)
+
+---
+
+## THREE-PHASE CHALLENGE FLOW (both modules)
+
+PHASE 1 — STUDY (module-level, not per-challenge):
+  Full cheat sheet table. Mark as Studied to unlock challenges.
+  Shows key combos with chord/sequence distinction.
+  Sequence shortcuts show callout: "Press each key one at a time"
+
+PHASE 2 — CHALLENGE ATTEMPT:
+  No answer shown ever.
+  Timer 10s: green>6 · yellow 3–6 · red<3 · flashing<1
+  3 wrong → [Try Again 50% XP max] appears
+  Timeout → [Try Again 50%] or [Skip 0 XP]
+
+PHASE 3 — RESULT:
+  Pass: green burst + XP count-up + before/after + memory tip
+  Fail: red X + reveal correct keys in green + [Try Again 50%] [Skip]
+
+---
+
+## SCORING
+
+  timeBonus:  secsLeft>=6→base*0.4, >=3→base*0.2, else 0
+  combo:      >=10→×2.0, >=5→×1.5, >=3→×1.25, else ×1.0
+  hintCap:    1 hint→max 25%, 2 hints→max 10% of base
+  retryCap:   max 50% of base XP
+  wrong/skip: 0 XP, combo resets
+
+---
+
+## LOCALSTORAGE STATE
+
+```typescript
+interface State {
+  player: { name:string; totalXP:number; level:number;
+            streak:number; lastActive:string }
+  shortcuts: Record<string,{
+    status:'locked'|'studied'|'completed'|'review'
+    attempts:number; bestXP:number; hintsUsed:number
+  }>
+  formatting: Record<string,{
+    status:'locked'|'studied'|'completed'
+    bestScore:number; attempts:number
+  }>
+  levelStudied: Record<string, boolean>  // 'shortcuts-rookie', etc.
+  levels: Record<number,{stars:number; score:number}>
+  combo: number; reviewQueue: string[]
+}
+// XP: 0 Rookie · 500 Intermediate · 2000 Advanced · 5000 Master
+```
+
+---
+
+## DASHBOARD (Home Hub)
+
+  Welcome text + streak counter
+  4 module cards:
+    Shortcut Masters — progress bar per level (Rookie/Inter/Advanced)
+    Formatting Kings — progress bar (Level 1/2/3)
+    Real Analysts    — "Coming Soon" gray chip
+    Leaderboard      — "Coming Soon" gray chip
+  Recent activity feed (last 5 completed challenges)
+  Badges row: Rookie Graduate · Intermediate · Advanced · Formatting King
+    (earned = green border, locked = dim)
+
+## PROFILE
+
+  Level + XP bar to next level + streak
+  Per-module completion breakdown (progress per level)
+  Badge collection with earn conditions
+  Activity log
+
+## PLACEHOLDER PAGES
+
+Real Analysts /analyst:
+  "Coming Soon" large text, 0% bar, feature preview list, "Notify me" button
+
+Leaderboard /leaderboard:
+  "Coming Soon", mock 5-user table (rank/name/XP/badges)
+
+---
+
+## NON-NEGOTIABLE RULES
+
+1.  { capture:true } on keydown — no exceptions
+2.  selectedCells is Set<string> — never a single string
+3.  preSelectedCells populates the full Set on challenge mount
+4.  applyEffect iterates every cell in selectedCells
+5.  validateEffect checks every cell in selectedCells
+6.  cellStyle reads from grid[id] per cell individually
+7.  Alt sequences use state machine — not chord detection
+8.  Alt+= (autosum) is chord — simultaneous
+9.  Simulator bg WHITE inside dark shell
+10. Marching ants animation on copy-marquee
+11. Study tab must be marked before Challenge tab unlocks
+12. Answer never shown during Phase 2
+13. Combo resets on wrong or skip
+14. All state persists via localStorage on every change
+15. Dark mode only
+16. No mascots, no owls, no emoji illustrations
+17. System font for UI, JetBrains Mono for cells
+18. Colors: blue #00B4D8 · green #4CAF50 · red #F44336
+19. "Made by Hyatt" under GridCrafters in sidebar
+20. Warped perspective grid SVG as logo mark
+21. Formatting Kings challenges: keyboard shortcuts only,
+    no mouse-click formatting, ribbon buttons are visual only
+22. Both modules share the same ExcelSimulator component
+23. Sequence shortcuts show → separator in key display
+24. Chord shortcuts show + separator in key display
